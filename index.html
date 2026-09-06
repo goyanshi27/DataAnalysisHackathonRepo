@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>OLIST Intelligence — Marketplace Analytics Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--a:#00E5FF;--a2:#8B5CF6;--pos:#2DD4BF;--warn:#F59E0B;--crit:#FF4D6D;--mu:#94A3B8;--bg:rgba(8,14,36,0.75);--br:rgba(255,255,255,0.09);--sw:238px;--th:56px}
+html,body{height:100%;overflow:hidden;background:#0B1020;color:#F1F5F9;font-family:'Inter',sans-serif;font-size:14px}
+.vbg{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.vov{position:fixed;inset:0;background:rgba(8,12,28,0.74);z-index:1}
+.shell{position:relative;z-index:2;display:flex;width:100%;height:100vh}
+.sb{width:var(--sw);flex-shrink:0;height:100vh;background:rgba(7,12,30,0.92);backdrop-filter:blur(20px);border-right:1px solid var(--br);display:flex;flex-direction:column;z-index:100;transition:width .3s}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:10px}
+.sb-name{font-family:'Instrument Serif',serif;font-size:20px;letter-spacing:1px;color:#fff}
+.sb-sub{font-size:10px;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase}
+.sb-close{display:none;background:none;border:none;color:var(--mu);cursor:pointer;padding:4px;margin-left:auto}
+.sb-nav{flex:1;padding:8px 0;overflow-y:auto;scrollbar-width:none}
+.sb-nav::-webkit-scrollbar{display:none}
+.nsec{font-size:10px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:1.5px;padding:10px 18px 4px}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;font-size:13px;color:var(--mu);border-left:2px solid transparent;transition:all .15s;white-space:nowrap;user-select:none}
+.ni:hover{color:#fff;background:rgba(255,255,255,0.04)}
+.ni.on{color:#fff;border-left-color:var(--a);background:linear-gradient(90deg,rgba(0,229,255,0.10),transparent)}
+.ni.on .nic{stroke:var(--a)}
+.nic{width:15px;height:15px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sb-ft{padding:12px 16px;border-top:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+.sdot.loading{background:var(--warn);box-shadow:0 0 6px var(--warn);animation:pulse 1.4s infinite}
+.sdot.ready{background:var(--pos);box-shadow:0 0 6px var(--pos)}
+.sdot.demo{background:var(--a);box-shadow:0 0 6px var(--a)}
+.sdot.error{background:var(--crit);box-shadow:0 0 6px var(--crit)}
+.sft{font-size:11px;color:var(--mu)}
+.btn-pres{display:flex;align-items:center;gap:5px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.22);color:var(--a);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .2s}
+.btn-pres:hover{background:rgba(0,229,255,0.16)}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;height:100vh;overflow:hidden}
+.tb{height:var(--th);flex-shrink:0;background:rgba(7,12,30,0.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--br);display:flex;align-items:center;padding:0 20px;gap:12px;z-index:50}
+.hbg{display:none;background:none;border:none;color:var(--mu);cursor:pointer;padding:4px}
+.tb-tit{font-family:'Instrument Serif',serif;font-size:17px;flex-shrink:0}
+.tb-right{display:flex;align-items:center;gap:7px;margin-left:auto;flex-wrap:wrap}
+.fsel{background:rgba(255,255,255,0.05);border:1px solid var(--br);border-radius:6px;color:#fff;padding:5px 9px;font-size:12px;outline:none;cursor:pointer;font-family:inherit}
+.fsel option{background:#0f1729}
+.tbtn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--br);background:rgba(255,255,255,0.05);color:var(--mu);font-family:inherit;transition:all .15s}
+.tbtn:hover{color:#fff;border-color:rgba(255,255,255,0.18)}
+.tbtn.ac{background:rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.28);color:var(--a)}
+.tbtn.ac:hover{background:rgba(0,229,255,0.18)}
+.chips{display:flex;gap:5px;flex:1;overflow:hidden;max-width:300px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25);color:var(--a);border-radius:20px;padding:3px 10px;font-size:11px;white-space:nowrap}
+.chip-x{background:none;border:none;color:var(--a);cursor:pointer;font-size:14px;line-height:1;padding:0}
+.page{flex:1;overflow-y:auto;padding:22px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.07) transparent}
+.page::-webkit-scrollbar{width:5px}
+.page::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.08);border-radius:3px}
+.ls-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:14px}
+.spin{width:40px;height:40px;border:3px solid rgba(0,229,255,0.15);border-top-color:var(--a);border-radius:50%;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.a1{animation:fu .4s .05s both}.a2{animation:fu .4s .12s both}.a3{animation:fu .4s .19s both}.a4{animation:fu .4s .26s both}.a5{animation:fu .4s .33s both}
+.gc{background:var(--bg);backdrop-filter:blur(14px);border:1px solid var(--br);border-radius:12px;transition:border-color .2s,transform .2s}
+.gc:hover{border-color:rgba(255,255,255,0.14)}
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:22px}
+.kc{background:rgba(8,14,36,0.72);backdrop-filter:blur(14px);border:1px solid var(--br);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:all .22s}
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--kclr,var(--a)),transparent);opacity:.6}
+.kc:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.15)}
+.k-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.k-v{font-size:26px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.k-l{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:1px;margin-top:5px}
+.k-s{font-size:11px;color:var(--mu);margin-top:5px}
+.sh{margin-bottom:20px}
+.st{font-family:'Instrument Serif',serif;font-size:22px;font-weight:400}
+.sq{font-size:13px;color:var(--mu);margin-top:4px}
+.cc{background:var(--bg);backdrop-filter:blur(14px);border:1px solid var(--br);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.ch{display:flex;align-items:flex-start;justify-content:space-between;padding:16px 20px 0;gap:12px;flex-wrap:wrap}
+.ct{font-size:14px;font-weight:600}
+.cs{font-size:12px;color:var(--mu);margin-top:2px}
+.ctb{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.ctbtn{width:28px;height:28px;background:rgba(255,255,255,0.04);border:1px solid var(--br);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--mu);cursor:pointer;transition:all .15s}
+.ctbtn:hover{color:#fff;border-color:rgba(255,255,255,0.18)}
+.ctbtn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.cts{display:flex;gap:2px;background:rgba(255,255,255,0.04);border:1px solid var(--br);border-radius:6px;padding:2px}
+.ct-t{padding:4px 10px;border-radius:4px;font-size:11px;color:var(--mu);background:transparent;border:none;cursor:pointer;font-family:inherit;font-weight:500}
+.ct-t.on{background:rgba(0,229,255,0.12);color:var(--a)}
+.cb{padding:14px 18px 18px;position:relative;min-height:200px}
+.cb canvas{display:block;width:100%!important}
+.ins{margin:0 20px 16px;border-left:3px solid var(--a);background:rgba(0,229,255,0.05);border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#CBD5E1;line-height:1.55}
+.ins.w{border-left-color:var(--warn);background:rgba(245,158,11,0.05)}
+.ins.c{border-left-color:var(--crit);background:rgba(255,77,109,0.05)}
+.ip{background:var(--bg);border:1px solid var(--br);border-radius:12px;padding:20px;margin-bottom:20px}
+.ip-t{font-size:12px;font-weight:600;color:var(--a);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ii{padding:11px 14px;border-radius:8px;border-left:3px solid var(--a);background:rgba(0,229,255,0.04);margin-bottom:10px;font-size:13px;color:#CBD5E1;line-height:1.55}
+.ii:last-child{margin-bottom:0}
+.ii.c{border-left-color:var(--crit);background:rgba(255,77,109,0.04)}
+.ii.w{border-left-color:var(--warn);background:rgba(245,158,11,0.04)}
+.ii.p{border-left-color:var(--pos);background:rgba(45,212,191,0.04)}
+.ii-w{font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.ii-e{font-size:11px;color:var(--mu);margin-top:6px}
+.bdg{display:inline-flex;align-items:center;padding:4px 11px;border-radius:20px;font-size:11px;font-weight:500}
+.bc{background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.22);color:var(--a)}
+.bp{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.22);color:var(--a2)}
+.bg2{background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.22);color:var(--pos)}
+.bw{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.22);color:var(--warn)}
+.br2{background:rgba(255,77,109,0.08);border:1px solid rgba(255,77,109,0.22);color:var(--crit)}
+.rb{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.r-c{background:rgba(255,77,109,0.14);color:var(--crit)}
+.r-h{background:rgba(255,120,50,0.14);color:#FF7832}
+.r-m{background:rgba(245,158,11,0.14);color:var(--warn)}
+.r-s{background:rgba(45,212,191,0.14);color:var(--pos)}
+.tc{background:var(--bg);backdrop-filter:blur(14px);border:1px solid var(--br);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.ttb{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--br);flex-wrap:wrap;gap:8px}
+.tsrch{background:rgba(255,255,255,0.05);border:1px solid var(--br);border-radius:6px;color:#fff;padding:6px 12px;font-size:12px;outline:none;width:200px;font-family:inherit}
+.tsrch::placeholder{color:var(--mu)}
+.tsrch:focus{border-color:rgba(0,229,255,0.35)}
+.ti{font-size:12px;color:var(--mu)}
+.tw{overflow-x:auto}
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt th{text-align:left;padding:8px 12px;font-size:10px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.7px;border-bottom:1px solid var(--br);cursor:pointer;user-select:none;background:rgba(255,255,255,0.02);white-space:nowrap}
+.dt th:hover{color:#fff}
+.dt td{padding:7px 12px;border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.dt tr:hover td{background:rgba(255,255,255,0.025)}
+.tpg{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--br);font-size:12px;color:var(--mu);flex-wrap:wrap;gap:8px}
+.pgb{width:28px;height:28px;border-radius:5px;border:1px solid var(--br);background:rgba(255,255,255,0.04);color:var(--mu);font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:inherit;transition:all .15s}
+.pgb:hover,.pgb.on{color:var(--a);border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.08)}
+.pgb:disabled{opacity:.3;cursor:default;pointer-events:none}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.uz{border:2px dashed rgba(0,229,255,0.25);border-radius:12px;padding:60px 40px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(0,229,255,0.03)}
+.uz:hover,.uz.drag{border-color:var(--a);background:rgba(0,229,255,0.08)}
+.utit{font-family:'Instrument Serif',serif;font-size:24px;margin-bottom:8px}
+.usub{font-size:13px;color:var(--mu);margin-bottom:20px}
+.tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:5px 13px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--br);background:transparent;color:var(--mu);font-family:inherit;transition:all .15s}
+.tab.on{background:rgba(0,229,255,0.1);color:var(--a);border-color:rgba(0,229,255,0.28)}
+.ec{background:var(--bg);border:1px solid var(--br);border-radius:12px;padding:20px;margin-bottom:20px}
+.ecg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.clbl{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px}
+.csel{background:rgba(255,255,255,0.05);border:1px solid var(--br);border-radius:6px;color:#fff;padding:8px 10px;font-size:13px;outline:none;cursor:pointer;width:100%;font-family:inherit}
+.csel:focus{border-color:rgba(0,229,255,0.35)}
+.csel option{background:#0f1729}
+.btn-go{background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);color:var(--a);border-radius:8px;padding:9px 22px;font-size:13px;font-weight:600;cursor:pointer;width:100%;font-family:inherit;margin-top:4px;transition:all .2s}
+.btn-go:hover{background:rgba(0,229,255,0.18)}
+.acard{background:var(--bg);border:1px solid var(--br);border-radius:12px;padding:20px;border-left:3px solid var(--a);margin-bottom:14px;transition:all .15s}
+.acard:hover{transform:translateY(-1px)}
+.acard.c{border-left-color:var(--crit)}.acard.w{border-left-color:var(--warn)}.acard.p{border-left-color:var(--pos)}
+.dp{background:rgba(8,14,36,0.82);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.12);border-radius:12px;padding:18px}
+.mr{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.mr:last-child{border-bottom:none}
+.mn{font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:.7px}
+.mv{font-size:13px;font-weight:600}
+.fso{position:fixed;inset:0;z-index:5000;background:rgba(5,8,20,0.97);backdrop-filter:blur(16px);display:flex;flex-direction:column;padding:24px}
+.fsh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+.fst{font-family:'Instrument Serif',serif;font-size:24px}
+.pso{position:fixed;inset:0;z-index:6000;background:rgba(5,8,20,0.98);backdrop-filter:blur(20px);display:flex;flex-direction:column}
+.psh{display:flex;justify-content:space-between;align-items:center;padding:20px 32px;border-bottom:1px solid var(--br)}
+.pslogo{font-family:'Instrument Serif',serif;font-size:22px;letter-spacing:2px;color:var(--a)}
+.psc{flex:1;overflow-y:auto;padding:32px}
+.sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:90}
+.sb-ov.on{display:block}
+.sk{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+#tc{position:fixed;top:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:rgba(10,15,35,0.96);border:1px solid var(--br);border-radius:8px;padding:12px 18px;font-size:13px;color:#CBD5E1;max-width:320px;backdrop-filter:blur(12px);animation:fu .3s ease;pointer-events:all}
+.toast.success{border-left:3px solid var(--pos)}.toast.error{border-left:3px solid var(--crit)}.toast.info{border-left:3px solid var(--a)}
+.nd{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;color:var(--mu);font-size:13px;min-height:180px}
+.nd-t{font-size:14px;font-weight:600;color:#CBD5E1;margin-bottom:6px}
+.sep{height:1px;background:linear-gradient(90deg,transparent,var(--br),transparent);margin:22px 0}
+.flex{display:flex}.aic{align-items:center}.jb{justify-content:space-between}.fw{flex-wrap:wrap}
+.g8{gap:8px}.g12{gap:12px}.g16{gap:16px}
+.mb8{margin-bottom:8px}.mb14{margin-bottom:14px}.mb20{margin-bottom:20px}
+.mt8{margin-top:8px}.mt12{margin-top:12px}
+.p16{padding:16px}.p18{padding:18px}.p20{padding:20px}
+.tac{text-align:center}
+.sm-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--br);background:rgba(255,255,255,0.05);color:var(--mu);font-family:inherit;transition:all .15s}
+.sm-btn:hover{color:#fff;border-color:rgba(255,255,255,0.18)}
+.sm-btn.pri{background:rgba(0,229,255,0.1);border-color:rgba(0,229,255,0.3);color:var(--a)}
+.demo-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--a);margin-left:8px;vertical-align:middle}
+@media(max-width:1060px){:root{--sw:62px}.sb-name,.sb-sub,.ni span,.nsec,.sft{display:none}.ni{padding:11px;justify-content:center}.sb-logo{justify-content:center;padding:16px 8px}.g2{grid-template-columns:1fr}.btn-pres span{display:none}}
+@media(max-width:700px){:root{--sw:0px}.sb{position:fixed;left:-100%;width:240px!important;transition:left .3s;box-shadow:4px 0 30px rgba(0,0,0,.5)}.sb.open{left:0}.sb-name,.sb-sub,.ni span,.nsec,.sft{display:flex!important}.ni{padding:9px 18px!important;justify-content:flex-start!important}.sb-logo{justify-content:space-between!important;padding:18px 16px 14px!important}.sb-close{display:flex!important}.hbg{display:flex}.kg{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr}.tb-right .fsel{display:none}}
+</style>
+</head>
+<body>
+<div id="tc"></div>
+<video class="vbg" autoplay loop muted playsinline>
+  <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260314_131748_f2ca2a28-fed7-44c8-b9a9-bd9acdd5ec31.mp4" type="video/mp4"/>
+</video>
+<div class="vov"></div>
+<div class="shell">
+  <aside class="sb" id="sb">
+    <div class="sb-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg>
+      <div><div class="sb-name">OLIST</div><div class="sb-sub">Intelligence</div></div>
+      <button class="sb-close" id="sb-close">✕</button>
+    </div>
+    <nav class="sb-nav">
+      <div class="nsec">Analytics</div>
+      <div class="ni on" data-page="cmd"><svg class="nic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Command Center</span></div>
+      <div class="ni" data-page="customer"><svg class="nic" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Customer Experience</span></div>
+      <div class="ni" data-page="delivery"><svg class="nic" viewBox="0 0 24 24"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v5"/><circle cx="18" cy="17" r="2"/><circle cx="7" cy="17" r="2"/></svg><span>Delivery Intelligence</span></div>
+      <div class="ni" data-page="geography"><svg class="nic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 4 10 15 15 0 0 1-4 10 15 15 0 0 1-4-10 15 15 0 0 1 4-10z"/></svg><span>Geographic Intel</span></div>
+      <div class="ni" data-page="category"><svg class="nic" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span>Category Intel</span></div>
+      <div class="ni" data-page="seller"><svg class="nic" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Seller Intel</span></div>
+      <div class="ni" data-page="payment"><svg class="nic" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Payment Intel</span></div>
+      <div class="ni" data-page="risk"><svg class="nic" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>Risk Intelligence</span></div>
+      <div class="nsec">Explorer</div>
+      <div class="ni" data-page="explorer"><svg class="nic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Data Explorer</span></div>
+      <div class="ni" data-page="upload"><svg class="nic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Upload &amp; Analyze</span></div>
+      <div class="ni" data-page="action"><svg class="nic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Action Center</span></div>
+    </nav>
+    <div class="sb-ft">
+      <div class="flex aic sft"><span class="sdot loading" id="sdot"></span><span id="sstat">Loading…</span></div>
+      <div class="flex aic g8">
+        <button class="btn-pres" id="upl-quick-btn" onclick="navigate('upload')" title="Upload your data" style="background:rgba(45,212,191,0.08);border-color:rgba(45,212,191,0.25);color:#2DD4BF"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> <span>Upload</span></button>
+        <button class="btn-pres" id="pres-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> <span>Present</span></button>
+      </div>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="tb">
+      <button class="hbg" id="hbg">☰</button>
+      <div class="tb-tit" id="tb-tit">Command Center</div>
+      <div class="chips" id="chips"></div>
+      <div class="tb-right">
+        <select class="fsel" id="f-state"><option value="">All States</option></select>
+        <select class="fsel" id="f-cat"><option value="">All Categories</option></select>
+        <select class="fsel" id="f-pay"><option value="">All Payments</option></select>
+        <button class="tbtn" id="f-reset">↺ Reset</button>
+        <button class="tbtn ac" id="exp-btn">↓ Export</button>
+      </div>
+    </header>
+    <main class="page" id="page">
+      <div class="ls-wrap" id="ls">
+        <div class="spin"></div>
+        <div style="font-family:'Instrument Serif',serif;font-size:20px">Loading OLIST Intelligence…</div>
+        <div style="font-size:13px;color:var(--mu)" id="ls-sub">Reading analytical workbook</div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="sb-ov" id="sb-ov"></div>
+<div class="fso" id="fso" style="display:none">
+  <div class="fsh"><div><div class="fst" id="fs-tit"></div><div style="font-size:13px;color:var(--mu);margin-top:4px" id="fs-sub2"></div></div>
+    <button id="fs-close" style="background:rgba(255,255,255,0.07);border:1px solid var(--br);color:var(--mu);border-radius:8px;padding:8px;cursor:pointer;font-size:16px;font-family:inherit">✕</button>
+  </div>
+  <div style="flex:1;min-height:0;position:relative"><canvas id="fs-canvas" style="width:100%;height:100%"></canvas></div>
+</div>
+<div class="pso" id="pso" style="display:none">
+  <div class="psh"><div class="pslogo">OLIST INTELLIGENCE</div>
+    <button id="pse" style="background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);color:var(--crit);border-radius:6px;padding:6px 16px;font-size:13px;cursor:pointer;font-family:inherit">Exit</button>
+  </div>
+  <div class="psc" id="psc"></div>
+</div>
+
+<script>
+/* ================================================================
+   OLIST INTELLIGENCE — COMPLETE WORKING APPLICATION
+   Works immediately with built-in demo data.
+   Also loads a real xlsx workbook if placed at public/data/
+   Upload & Analyze works with any CSV/Excel file.
+================================================================ */
+
+// ── CHART REGISTRY ─────────────────────────────────────────────
+var R = {};
+function kc(id) {
+  if (R[id]) { try { R[id].destroy(); } catch(e){} delete R[id]; }
+  var c = document.getElementById(id);
+  if (c) { var x = Chart.getChart(c); if (x) try { x.destroy(); } catch(e){} }
+}
+function nd(id, m) {
+  var c = document.getElementById(id); if (!c) return;
+  c.style.display = 'none';
+  c.parentElement.querySelectorAll('.ndm').forEach(function(e){ e.remove(); });
+  var d = document.createElement('div');
+  d.className = 'ndm nd';
+  d.innerHTML = '<div class="nd-t">No Data</div><div>' + xe(m || 'Not enough data.') + '</div>';
+  c.parentElement.appendChild(d);
+}
+function sc(id) {
+  var c = document.getElementById(id); if (!c) return;
+  c.style.display = 'block';
+  c.parentElement.querySelectorAll('.ndm').forEach(function(e){ e.remove(); });
+}
+
+// ── UTILS ───────────────────────────────────────────────────────
+function xe(s) { if (s == null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fN(n) { if (n == null || isNaN(n)) return 'N/A'; var x = Number(n); if (x >= 1e9) return (x/1e9).toFixed(2)+'B'; if (x >= 1e6) return (x/1e6).toFixed(1)+'M'; if (x >= 1e3) return (x/1e3).toFixed(1)+'K'; return x.toLocaleString('en-US'); }
+function fP(n, d) { d = d || 2; if (n == null || isNaN(n)) return 'N/A'; return Number(n).toFixed(d) + '%'; }
+function fBRL(n) { if (n == null || isNaN(n)) return 'N/A'; var x = Number(n); if (x >= 1e9) return 'R$'+(x/1e9).toFixed(2)+'B'; if (x >= 1e6) return 'R$'+(x/1e6).toFixed(2)+'M'; if (x >= 1e3) return 'R$'+(x/1e3).toFixed(1)+'K'; return 'R$'+x.toFixed(2); }
+function pN(v) { if (v == null || v === '') return null; if (typeof v === 'number') return isNaN(v)||!isFinite(v)?null:v; var s = String(v).trim().replace(/^R\$\s*/i,'').replace(/,/g,'').replace(/%$/,'').replace(/[^\d.\-]/g,''); if (!s || s === '-') return null; var n = parseFloat(s); return isNaN(n)||!isFinite(n)?null:n; }
+function rC(r) { var x = Number(r)||0; if (x >= 15) return '#FF4D6D'; if (x >= 12) return '#FF7832'; if (x >= 9) return '#F59E0B'; return '#2DD4BF'; }
+function h2a(h, a) { a = a||1; if (!h||h.length<7) return 'rgba(0,0,0,'+a+')'; var r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return 'rgba('+r+','+g+','+b+','+a+')'; }
+var PAL = ['#00E5FF','#8B5CF6','#2DD4BF','#F59E0B','#FF4D6D','#94A3B8','#A78BFA','#34D399','#FB923C','#60A5FA'];
+function pc(i, a) { var h = PAL[Math.abs(i) % PAL.length]; return (a != null && a < 1) ? h2a(h, a) : h; }
+function gBy(arr, k) { if (!arr) return {}; return arr.reduce(function(acc, item){ var key = item[k] != null ? String(item[k]) : '__null__'; if (!acc[key]) acc[key] = []; acc[key].push(item); return acc; }, {}); }
+function sBy(arr, k, d) { d = d||'desc'; return [].concat(arr).sort(function(a,b){ var av=pN(a[k]),bv=pN(b[k]); if (av==null) return 1; if (bv==null) return -1; return d==='desc'?bv-av:av-bv; }); }
+function cV(arr) { return (arr||[]).map(function(v){ if (v==null||v==='') return null; var n=typeof v==='number'?v:parseFloat(String(v).replace(/[^0-9.\-]/g,'')); return isNaN(n)||!isFinite(n)?null:n; }); }
+function pg(arr, p, ps) { return arr.slice((p-1)*ps, p*ps); }
+function deb(fn, d) { var t; return function(){ var a=arguments, ctx=this; clearTimeout(t); t=setTimeout(function(){ fn.apply(ctx,a); }, d); }; }
+function toast(msg, type, dur) { type=type||'info'; dur=dur||3500; var c=document.getElementById('tc'); if(!c) return; var e=document.createElement('div'); e.className='toast '+type; e.textContent=String(msg); c.appendChild(e); setTimeout(function(){ e.style.opacity='0'; e.style.transition='opacity .3s'; setTimeout(function(){ e.remove(); },350); }, dur); }
+function pearson(x, y) { if (!x||!y||x.length!==y.length||x.length<3) return {r:null,n:0,p:1}; var n=x.length,mx=x.reduce(function(a,b){return a+b;},0)/n,my=y.reduce(function(a,b){return a+b;},0)/n; var num=0,dx2=0,dy2=0; for(var i=0;i<n;i++){var dx=x[i]-mx,dy=y[i]-my;num+=dx*dy;dx2+=dx*dx;dy2+=dy*dy;} var denom=Math.sqrt(dx2*dy2); var r=denom===0?0:num/denom; var t=r*Math.sqrt(n-2)/Math.sqrt(Math.max(1e-10,1-r*r)); var p=Math.abs(t)>3?0.001:Math.abs(t)>2.5?0.01:Math.abs(t)>2?0.05:0.1; return {r:Math.round(r*10000)/10000,p:p,n:n,sig:p<0.05}; }
+function fmtP(p) { if (!p&&p!==0) return 'N/A'; if (p<0.001) return 'p < 0.001'; if (p<0.01) return 'p < 0.01'; if (p<0.05) return 'p < 0.05'; return 'p = '+p.toFixed(3); }
+function cStr(r) { var a=Math.abs(r); if (a>=0.7) return 'strong'; if (a>=0.4) return 'moderate'; if (a>=0.2) return 'weak'; return 'negligible'; }
+function eNums(data, key) { return data.map(function(r){ return pN(r[key]); }).filter(function(v){ return v!=null&&isFinite(v); }); }
+
+// ── BASE CHART OPTIONS ──────────────────────────────────────────
+function bO() { return { responsive:true, maintainAspectRatio:false, animation:{duration:600}, plugins:{legend:{labels:{color:'#94A3B8',font:{family:'Inter',size:12},padding:14}},tooltip:{backgroundColor:'rgba(6,14,32,0.96)',borderColor:'rgba(255,255,255,0.14)',borderWidth:1,titleColor:'#fff',bodyColor:'#94A3B8',padding:12,cornerRadius:10,titleFont:{family:'Inter',size:13,weight:'600'},bodyFont:{family:'Inter',size:12}}},scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{family:'Inter',size:11}},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{family:'Inter',size:11}},border:{display:false},beginAtZero:true}}}; }
+
+// ── CHART BUILDERS ──────────────────────────────────────────────
+function mkBar(id, labels, datasets, opts) {
+  opts=opts||{}; kc(id); var cv=document.getElementById(id); if (!cv) return null; sc(id);
+  if (!labels||!labels.length) { nd(id,'No data.'); return null; }
+  var ds=datasets.map(function(d,i){ return {label:d.label||'',data:cV(d.data||[]),backgroundColor:d.bg||pc(i,0.72),borderColor:d.bc||pc(i),borderWidth:0,borderRadius:d.radius!=null?d.radius:4,borderSkipped:false}; });
+  var o=bO(); o.plugins.legend.display=ds.length>1;
+  if (opts.stacked){o.scales.x.stacked=true;o.scales.y.stacked=true;}
+  if (opts.yMin!=null) o.scales.y.min=opts.yMin; if (opts.yMax!=null) o.scales.y.max=opts.yMax;
+  if (opts.y2) o.scales.y2={position:'right',grid:{display:false},ticks:{color:opts.y2.color||'#A855F7',font:{size:10}},border:{display:false}};
+  if (opts.xTitle) o.scales.x.title={display:true,text:opts.xTitle,color:'#64748b'};
+  if (opts.yTitle) o.scales.y.title={display:true,text:opts.yTitle,color:'#64748b'};
+  var ch=new Chart(cv,{type:'bar',data:{labels:labels,datasets:ds},options:o}); R[id]=ch; return ch;
+}
+function mkHBar(id, labels, vals, opts) {
+  opts=opts||{}; kc(id); var cv=document.getElementById(id); if (!cv) return null; sc(id);
+  if (!labels||!labels.length) { nd(id,'No data.'); return null; }
+  var colors=labels.map(function(_,i){ return opts.colors?opts.colors[i]||pc(i,0.72):pc(i,0.72); });
+  var o=bO(); o.indexAxis='y'; o.plugins.legend.display=false; o.scales.x.beginAtZero=true; o.scales.y.grid={display:false};
+  if (opts.xTitle) o.scales.x.title={display:true,text:opts.xTitle,color:'#64748b'};
+  var ch=new Chart(cv,{type:'bar',data:{labels:labels,datasets:[{label:opts.label||'Value',data:cV(vals),backgroundColor:colors,borderRadius:4}]},options:o}); R[id]=ch; return ch;
+}
+function mkLine(id, labels, datasets, opts) {
+  opts=opts||{}; kc(id); var cv=document.getElementById(id); if (!cv) return null; sc(id);
+  if (!labels||!labels.length) { nd(id,'No time data.'); return null; }
+  var ds=datasets.map(function(d,i){ return {label:d.label||'',data:cV(d.data||[]),borderColor:d.color||pc(i),backgroundColor:d.fill?h2a(d.color||pc(i),0.15):'transparent',pointRadius:d.pts!=null?d.pts:4,pointHoverRadius:6,tension:0.4,borderWidth:d.bw||2.5,fill:d.fill||false}; });
+  var o=bO(); o.plugins.legend.display=ds.length>1;
+  if (opts.yMin!=null) o.scales.y.min=opts.yMin; if (opts.yMax!=null) o.scales.y.max=opts.yMax;
+  if (opts.y2) o.scales.y2={position:'right',grid:{display:false},ticks:{color:opts.y2.color||'#A855F7',font:{size:10}},border:{display:false},min:opts.y2.min,max:opts.y2.max};
+  if (opts.xTitle) o.scales.x.title={display:true,text:opts.xTitle,color:'#64748b'};
+  if (opts.yTitle) o.scales.y.title={display:true,text:opts.yTitle,color:'#64748b'};
+  var ch=new Chart(cv,{type:'line',data:{labels:labels,datasets:ds},options:o}); R[id]=ch; return ch;
+}
+function mkArea(id, labels, datasets, opts) { return mkLine(id, labels, datasets.map(function(d){ return Object.assign({},d,{fill:true}); }), opts); }
+function mkDoughnut(id, labels, vals, opts) {
+  opts=opts||{}; kc(id); var cv=document.getElementById(id); if (!cv) return null; sc(id);
+  var cv2=cV(vals); var pairs=labels.map(function(l,i){ return {l:l,v:cv2[i]}; }).filter(function(p){ return p.v!=null&&p.v>0; });
+  if (!pairs.length) { nd(id,'No positive values.'); return null; }
+  var o={responsive:true,maintainAspectRatio:false,animation:{duration:600},cutout:opts.pie?'0%':'62%',plugins:{legend:{position:opts.legendPos||'right',labels:{color:'#94A3B8',font:{family:'Inter',size:11},padding:12}},tooltip:{backgroundColor:'rgba(6,14,32,0.96)',borderColor:'rgba(255,255,255,0.14)',borderWidth:1,titleColor:'#fff',bodyColor:'#94A3B8',padding:12}}};
+  var ch=new Chart(cv,{type:'doughnut',data:{labels:pairs.map(function(p){ return p.l; }),datasets:[{data:pairs.map(function(p){ return p.v; }),backgroundColor:pairs.map(function(_,i){ return pc(i,0.82); }),borderColor:'rgba(0,0,0,.2)',borderWidth:1}]},options:o}); R[id]=ch; return ch;
+}
+function mkScatter(id, datasets, opts) {
+  opts=opts||{}; kc(id); var cv=document.getElementById(id); if (!cv) return null; sc(id);
+  var ds=datasets.map(function(d,i){ var pts=(d.data||[]).filter(function(p){ return p&&p.x!=null&&p.y!=null&&isFinite(p.x)&&isFinite(p.y); }); return {label:d.label||'',data:pts,backgroundColor:h2a(d.color||pc(i),0.6),borderColor:d.color||pc(i),pointRadius:d.r||5,pointHoverRadius:7}; });
+  var total=ds.reduce(function(s,d){ return s+d.data.length; },0); if (!total) { nd(id,'No valid x,y pairs.'); return null; }
+  var o=bO(); o.plugins.legend.display=ds.length>1;
+  if (opts.xTitle) o.scales.x.title={display:true,text:opts.xTitle,color:'#64748b'};
+  if (opts.yTitle) o.scales.y.title={display:true,text:opts.yTitle,color:'#64748b'};
+  if (opts.yMin!=null) o.scales.y.min=opts.yMin; if (opts.yMax!=null) o.scales.y.max=opts.yMax;
+  var ch=new Chart(cv,{type:'scatter',data:{datasets:ds},options:o}); R[id]=ch; return ch;
+}
+function mkBubble(id, datasets, opts) {
+  opts=opts||{}; kc(id); var cv=document.getElementById(id); if (!cv) return null; sc(id);
+  var ds=datasets.map(function(d,i){ var pts=(d.data||[]).filter(function(p){ return p&&isFinite(p.x)&&isFinite(p.y); }).map(function(p){ return {x:p.x,y:p.y,r:Math.max(4,Math.min(40,p.r||8)),label:p.label||''}; }); return {label:d.label||'',data:pts,backgroundColor:h2a(d.color||pc(i),0.65),borderColor:d.color||pc(i),borderWidth:1}; });
+  var total=ds.reduce(function(s,d){ return s+d.data.length; },0); if (!total) { nd(id,'No bubble data.'); return null; }
+  var o=bO(); o.plugins.legend.display=ds.length>1;
+  o.plugins.tooltip={backgroundColor:'rgba(6,14,32,0.96)',borderColor:'rgba(255,255,255,0.14)',borderWidth:1,titleColor:'#fff',bodyColor:'#94A3B8',padding:12,cornerRadius:10,callbacks:{label:function(ctx){ return (ctx.raw.label||ctx.dataset.label)+': ('+ctx.raw.x.toFixed(1)+', '+(typeof ctx.raw.y==='number'?ctx.raw.y.toFixed(2):ctx.raw.y)+')'; }}};
+  if (opts.xTitle) o.scales.x.title={display:true,text:opts.xTitle,color:'#64748b'};
+  if (opts.yTitle) o.scales.y.title={display:true,text:opts.yTitle,color:'#64748b'};
+  var ch=new Chart(cv,{type:'bubble',data:{datasets:ds},options:o}); R[id]=ch; return ch;
+}
+function mkRadar(id, labels, datasets, opts) {
+  opts=opts||{}; kc(id); var cv=document.getElementById(id); if (!cv) return null; sc(id);
+  if (!labels||labels.length<3) { nd(id,'Radar needs 3+ items.'); return null; }
+  var ds=datasets.map(function(d,i){ return {label:d.label||'',data:cV(d.data||[]),borderColor:d.color||pc(i),backgroundColor:h2a(d.color||pc(i),0.15),pointBackgroundColor:d.color||pc(i),borderWidth:2}; });
+  var o={responsive:true,maintainAspectRatio:false,animation:{duration:600},plugins:{legend:{labels:{color:'#94A3B8',font:{family:'Inter',size:12}}},tooltip:{backgroundColor:'rgba(6,14,32,0.96)',borderColor:'rgba(255,255,255,0.14)',borderWidth:1,titleColor:'#fff',bodyColor:'#94A3B8',padding:12}},scales:{r:{grid:{color:'rgba(255,255,255,0.08)'},ticks:{color:'#64748b',backdropColor:'transparent',font:{size:10}},pointLabels:{color:'#94A3B8',font:{size:11,family:'Inter'}}}}};
+  var ch=new Chart(cv,{type:'radar',data:{labels:labels,datasets:ds},options:o}); R[id]=ch; return ch;
+}
+function mkHist(id, vals, opts) {
+  opts=opts||{}; kc(id); var cv=document.getElementById(id); if (!cv) return null; sc(id);
+  var clean=vals.filter(function(v){ return v!=null&&isFinite(v); });
+  if (clean.length<5) { nd(id,'Histogram needs 5+ values (found '+clean.length+').'); return null; }
+  var bins=opts.bins||Math.min(20,Math.max(5,Math.ceil(Math.sqrt(clean.length))));
+  var mn=Math.min.apply(null,clean),mx=Math.max.apply(null,clean),w=(mx-mn)/bins||1;
+  var counts=new Array(bins).fill(0); var lbs=[];
+  for (var i=0;i<bins;i++) lbs.push((mn+i*w).toFixed(1));
+  clean.forEach(function(v){ var idx=Math.floor((v-mn)/w); if (idx>=bins) idx=bins-1; counts[idx]++; });
+  var o=bO(); o.plugins.legend.display=false; o.scales.x.title={display:true,text:opts.xLabel||'Value',color:'#64748b'}; o.scales.y.title={display:true,text:'Frequency',color:'#64748b'}; o.scales.x.grid={display:false};
+  var ch=new Chart(cv,{type:'bar',data:{labels:lbs,datasets:[{label:'Frequency',data:counts,backgroundColor:'rgba(0,229,255,0.58)',borderColor:'#00E5FF',borderWidth:1,borderRadius:2,categoryPercentage:1,barPercentage:0.96}]},options:o}); R[id]=ch; return ch;
+}
+function expPNG(id, name) { var ch=R[id]; if (!ch){toast('No chart to export','error');return;} var a=document.createElement('a'); a.download=(name||id)+'.png'; a.href=ch.canvas.toDataURL('image/png'); a.click(); toast('Chart exported','success'); }
+</script>
+
+<script>
+// ── TABLE ENGINE ────────────────────────────────────────────────
+var TB = {};
+function mkTbl(wId, data, cols, opts) {
+  opts=opts||{}; var wrap=document.getElementById(wId); if (!wrap||!data) return;
+  var ps=opts.pageSize||20;
+  TB[wId]={data:data,filtered:data.slice(),cols:cols||(data.length?Object.keys(data[0]):[]),page:1,sk:null,sd:'asc',q:'',ps:ps};
+  wrap.innerHTML='<div class="tc"><div class="ttb"><input class="tsrch" id="'+wId+'-s" placeholder="Search…"/><div class="flex aic g8"><span class="ti" id="'+wId+'-info"></span><button class="sm-btn" onclick="expTblCSV(\''+wId+'\')">↓ CSV</button></div></div><div class="tw"><table class="dt"><thead><tr id="'+wId+'-th"></tr></thead><tbody id="'+wId+'-tb"></tbody></table></div><div class="tpg" id="'+wId+'-pg"></div></div>';
+  var si=document.getElementById(wId+'-s'); if (si) si.addEventListener('input',deb(function(e){ TB[wId].q=e.target.value; TB[wId].page=1; ftbl(wId); rtbl(wId); },200));
+  rtbl(wId);
+}
+function ftbl(id) { var t=TB[id]; if (!t) return; var q=t.q.toLowerCase(); t.filtered=q?t.data.filter(function(row){ return t.cols.some(function(c){ return String(row[c]||'').toLowerCase().indexOf(q)>=0; }); }):t.data.slice(); if (t.sk) stbl(id,t.sk,false); }
+function stbl(id, col, toggle) { var t=TB[id]; if (!t) return; if (toggle){ t.sd=t.sk===col&&t.sd==='asc'?'desc':'asc'; } t.sk=col; t.filtered.sort(function(a,b){ var av=pN(a[col])||a[col],bv=pN(b[col])||b[col]; if (av==null) return 1; if (bv==null) return -1; var cmp=typeof av==='string'?av.localeCompare(bv):av-bv; return t.sd==='asc'?cmp:-cmp; }); }
+function rtbl(id) {
+  var t=TB[id]; if (!t) return;
+  var total=t.filtered.length,totalPgs=Math.max(1,Math.ceil(total/t.ps));
+  t.page=Math.min(Math.max(1,t.page),totalPgs);
+  var page=pg(t.filtered,t.page,t.ps);
+  var th=document.getElementById(id+'-th'), tb=document.getElementById(id+'-tb'), info=document.getElementById(id+'-info'), pgEl=document.getElementById(id+'-pg');
+  if (th) th.innerHTML=t.cols.map(function(c){ return '<th onclick="stblC(\''+id+'\',\''+xe(c)+'\')">'+xe(c)+(t.sk===c?(t.sd==='desc'?' ↓':' ↑'):'')+'</th>'; }).join('');
+  if (tb) { if (!page.length) tb.innerHTML='<tr><td colspan="'+t.cols.length+'" style="text-align:center;padding:24px;color:#64748b">No results</td></tr>'; else tb.innerHTML=page.map(function(row){ return '<tr>'+t.cols.map(function(c){ return '<td>'+xe(String(row[c] != null ? row[c] : ''))+'</td>'; }).join('')+'</tr>'; }).join(''); }
+  if (info) info.textContent=fN(total)+' rows'+(t.q?' (filtered)':'');
+  if (pgEl) { var s=(t.page-1)*t.ps+1,e=Math.min(t.page*t.ps,total); var btns='<span>'+s+'–'+e+' of '+fN(total)+'</span><div class="flex g8">'; btns+='<button class="pgb" '+(t.page<=1?'disabled':'')+' onclick="tpg(\''+id+'\','+(t.page-1)+')">‹</button>'; var rng=pgRng(t.page,totalPgs); rng.forEach(function(p){ if (p==='…') btns+='<span style="color:#475569;padding:0 2px">…</span>'; else btns+='<button class="pgb'+(p===t.page?' on':'')+'" onclick="tpg(\''+id+'\','+p+')">'+p+'</button>'; }); btns+='<button class="pgb" '+(t.page>=totalPgs?'disabled':'')+' onclick="tpg(\''+id+'\','+(t.page+1)+')">›</button></div>'; pgEl.innerHTML=btns; }
+}
+window.stblC = function(id, col){ stbl(id,col,true); rtbl(id); };
+window.tpg = function(id, p){ if (TB[id]){ TB[id].page=p; rtbl(id); } };
+window.expTblCSV = function(id){ var t=TB[id]; if (!t) return; var rows=[t.cols].concat(t.filtered.map(function(row){ return t.cols.map(function(c){ return '"'+String(row[c]||'').replace(/"/g,'""')+'"'; }); })); var b=new Blob([rows.map(function(r){ return r.join(','); }).join('\n')],{type:'text/csv'}); var url=URL.createObjectURL(b); var a=document.createElement('a'); a.href=url; a.download=id+'.csv'; a.click(); URL.revokeObjectURL(url); toast('CSV exported','success'); };
+function pgRng(cur, total) { if (total<=7) return Array.from({length:total},function(_,i){ return i+1; }); var p=[1]; if (cur>3) p.push('…'); for (var i=Math.max(2,cur-1);i<=Math.min(total-1,cur+1);i++) p.push(i); if (cur<total-2) p.push('…'); p.push(total); return p; }
+</script>
+
+<script>
+// ── DEMO DATA (built-in, always available) ──────────────────────
+function buildDemoData() {
+  var months = ['2017-01','2017-02','2017-03','2017-04','2017-05','2017-06','2017-07','2017-08','2017-09','2017-10','2017-11','2017-12','2018-01','2018-02','2018-03','2018-04','2018-05','2018-06','2018-07','2018-08'];
+  var ordersBase = [850,1020,1380,1640,2010,2280,2640,2970,3310,3780,4420,3800,4050,3740,4870,5020,5340,5680,6020,4950];
+  var revBase = [4.1,4.0,4.05,4.08,4.03,3.99,3.97,3.94,3.96,3.92,3.88,3.85,3.90,3.87,3.83,3.85,3.82,3.80,3.78,3.75];
+  var pvBase = [48000,58000,79000,96000,118000,136000,157000,178000,200000,229000,270000,232000,248000,229000,298000,308000,327000,349000,370000,304000];
+  var monthly = months.map(function(m,i){ return {month:m, orders:ordersBase[i], product_value:pvBase[i], avg_review:revBase[i]}; });
+
+  var states = [
+    {state:'AC',orders:320,late_orders:68,late_rate:21.3,avg_late_days:8.4,avg_review:3.2},
+    {state:'AM',orders:410,late_orders:78,late_rate:19.0,avg_late_days:7.8,avg_review:3.3},
+    {state:'RR',orders:190,late_orders:34,late_rate:17.9,avg_late_days:7.1,avg_review:3.4},
+    {state:'AP',orders:220,late_orders:37,late_rate:16.8,avg_late_days:6.9,avg_review:3.4},
+    {state:'PA',orders:1820,late_orders:291,late_rate:16.0,avg_late_days:6.5,avg_review:3.5},
+    {state:'RO',orders:540,late_orders:81,late_rate:15.0,avg_late_days:6.2,avg_review:3.5},
+    {state:'TO',orders:650,late_orders:91,late_rate:14.0,avg_late_days:5.8,avg_review:3.6},
+    {state:'MA',orders:890,late_orders:116,late_rate:13.0,avg_late_days:5.4,avg_review:3.6},
+    {state:'PI',orders:720,late_orders:86,late_rate:12.0,avg_late_days:5.1,avg_review:3.7},
+    {state:'AL',orders:840,late_orders:92,late_rate:11.0,avg_late_days:4.8,avg_review:3.7},
+    {state:'SE',orders:680,late_orders:68,late_rate:10.0,avg_late_days:4.4,avg_review:3.8},
+    {state:'CE',orders:2420,late_orders:218,late_rate:9.0,avg_late_days:4.1,avg_review:3.9},
+    {state:'RN',orders:1140,late_orders:91,late_rate:8.0,avg_late_days:3.8,avg_review:3.9},
+    {state:'PB',orders:1280,late_orders:90,late_rate:7.0,avg_late_days:3.5,avg_review:4.0},
+    {state:'BA',orders:4210,late_orders:253,late_rate:6.0,avg_late_days:3.1,avg_review:4.0},
+    {state:'PE',orders:3780,late_orders:189,late_rate:5.0,avg_late_days:2.8,avg_review:4.1},
+    {state:'MT',orders:1560,late_orders:70,late_rate:4.5,avg_late_days:2.4,avg_review:4.1},
+    {state:'GO',orders:3240,late_orders:130,late_rate:4.0,avg_late_days:2.2,avg_review:4.2},
+    {state:'MG',orders:11280,late_orders:339,late_rate:3.0,avg_late_days:1.8,avg_review:4.2},
+    {state:'RJ',orders:12840,late_orders:321,late_rate:2.5,avg_late_days:1.5,avg_review:4.3},
+    {state:'SP',orders:41820,late_orders:628,late_rate:1.5,avg_late_days:1.1,avg_review:4.4},
+    {state:'PR',orders:7640,late_orders:115,late_rate:1.5,avg_late_days:1.0,avg_review:4.4},
+    {state:'SC',orders:5120,late_orders:77,late_rate:1.5,avg_late_days:1.0,avg_review:4.4},
+    {state:'RS',orders:5820,late_orders:87,late_rate:1.5,avg_late_days:1.1,avg_review:4.3},
+    {state:'ES',orders:2140,late_orders:43,late_rate:2.0,avg_late_days:1.3,avg_review:4.2},
+    {state:'DF',orders:2380,late_orders:57,late_rate:2.4,avg_late_days:1.4,avg_review:4.1},
+    {state:'MS',orders:1120,late_orders:28,late_rate:2.5,avg_late_days:1.5,avg_review:4.1}
+  ].sort(function(a,b){ return b.late_rate - a.late_rate; });
+
+  var categories = [
+    {category:'office_furniture',orders:1820,late_orders:346,late_rate:19.0,avg_late_days:7.8,avg_review:3.3},
+    {category:'computers',orders:940,late_orders:170,late_rate:18.1,avg_late_days:7.2,avg_review:3.4},
+    {category:'home_appliances_2',orders:1240,late_orders:211,late_rate:17.0,avg_late_days:6.9,avg_review:3.4},
+    {category:'furniture_bedroom',orders:2310,late_orders:370,late_rate:16.0,avg_late_days:6.5,avg_review:3.5},
+    {category:'garden_tools',orders:1680,late_orders:252,late_rate:15.0,avg_late_days:6.1,avg_review:3.5},
+    {category:'home_construction',orders:3420,late_orders:479,late_rate:14.0,avg_late_days:5.8,avg_review:3.6},
+    {category:'furniture_living_room',orders:2890,late_orders:376,late_rate:13.0,avg_late_days:5.4,avg_review:3.6},
+    {category:'air_conditioning',orders:870,late_orders:104,late_rate:12.0,avg_late_days:5.0,avg_review:3.7},
+    {category:'industry_commerce',orders:1540,late_orders:170,late_rate:11.0,avg_late_days:4.7,avg_review:3.7},
+    {category:'luggage_accessories',orders:1120,late_orders:112,late_rate:10.0,avg_late_days:4.3,avg_review:3.8},
+    {category:'auto',orders:2640,late_orders:237,late_rate:9.0,avg_late_days:4.0,avg_review:3.9},
+    {category:'electronics',orders:3980,late_orders:318,late_rate:8.0,avg_late_days:3.6,avg_review:4.0},
+    {category:'sports_leisure',orders:6420,late_orders:449,late_rate:7.0,avg_late_days:3.2,avg_review:4.0},
+    {category:'toys',orders:4870,late_orders:292,late_rate:6.0,avg_late_days:2.8,avg_review:4.1},
+    {category:'books_technical',orders:1940,late_orders:97,late_rate:5.0,avg_late_days:2.4,avg_review:4.2},
+    {category:'housewares',orders:8340,late_orders:334,late_rate:4.0,avg_late_days:2.0,avg_review:4.2},
+    {category:'watches_gifts',orders:5120,late_orders:154,late_rate:3.0,avg_late_days:1.6,avg_review:4.3},
+    {category:'health_beauty',orders:9240,late_orders:185,late_rate:2.0,avg_late_days:1.2,avg_review:4.4},
+    {category:'bed_bath_table',orders:11420,late_orders:171,late_rate:1.5,avg_late_days:1.0,avg_review:4.4},
+    {category:'telephony',orders:4280,late_orders:64,late_rate:1.5,avg_late_days:1.0,avg_review:4.3}
+  ].sort(function(a,b){ return b.late_rate - a.late_rate; });
+
+  var sellers = [];
+  for (var i=0;i<80;i++){
+    var lr=Math.max(0,Math.min(45,3+Math.random()*32));
+    var tot=Math.round(20+Math.random()*480);
+    var late=Math.round(tot*lr/100);
+    sellers.push({seller_id:'seller_'+String(i+1).padStart(4,'0'),total_orders:tot,late_orders:late,late_rate:Math.round(lr*100)/100,avg_late_days:Math.round((1+Math.random()*8)*100)/100,avg_review:Math.round((2.5+Math.random()*2)*100)/100});
+  }
+  sellers.sort(function(a,b){ return b.late_rate-a.late_rate; });
+
+  var pays = [
+    {type:'credit_card',orders:76794,totalValue:12847000,avgOrderValue:167.3,avgInstallments:3.7,avgReview:4.08},
+    {type:'boleto',orders:19784,totalValue:2843000,avgOrderValue:143.7,avgInstallments:1.0,avgReview:3.89},
+    {type:'voucher',orders:5775,totalValue:621000,avgOrderValue:107.5,avgInstallments:1.0,avgReview:3.71},
+    {type:'debit_card',orders:1529,totalValue:198000,avgOrderValue:129.5,avgInstallments:1.0,avgReview:4.12}
+  ];
+
+  var installments = [1,2,3,4,5,6,7,8,9,10,12].map(function(n){
+    return {n:n, orders:Math.round(8000/(n*0.8+0.4)), avgOrderValue:Math.round((90+n*28+Math.random()*20)*100)/100};
+  });
+
+  var buckets = ['7+ Days Early','3-6 Days Early','On/Slightly Early','1-3 Days Late','4-7 Days Late','8+ Days Late'];
+  var delivery_summary = [
+    {delivery_bucket:'7+ Days Early',orders:4820,avg_review:4.42,delivery_deviation_days:-9.2},
+    {delivery_bucket:'3-6 Days Early',orders:18640,avg_review:4.31,delivery_deviation_days:-4.5},
+    {delivery_bucket:'On/Slightly Early',orders:35280,avg_review:4.18,delivery_deviation_days:-0.8},
+    {delivery_bucket:'1-3 Days Late',orders:22140,avg_review:3.74,delivery_deviation_days:1.9},
+    {delivery_bucket:'4-7 Days Late',orders:11820,avg_review:3.12,delivery_deviation_days:5.4},
+    {delivery_bucket:'8+ Days Late',orders:4980,avg_review:2.48,delivery_deviation_days:11.8}
+  ];
+
+  // scatter points: dev vs review
+  var order_master = [];
+  var deviations = [-12,-10,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,12,14];
+  var reviewMap = {'-12':4.5,'-10':4.45,'-8':4.40,'-7':4.38,'-6':4.32,'-5':4.28,'-4':4.22,'-3':4.15,'-2':4.08,'-1':4.0,'0':3.95,'1':3.82,'2':3.65,'3':3.50,'4':3.30,'5':3.10,'6':2.90,'7':2.75,'8':2.62,'9':2.55,'10':2.48,'12':2.42,'14':2.38};
+  deviations.forEach(function(dev){
+    var baseRev = reviewMap[String(dev)] || 3.5;
+    for (var j=0;j<60;j++){
+      order_master.push({delivery_deviation_days:dev+(Math.random()-0.5)*0.8,review_score:Math.max(1,Math.min(5,baseRev+(Math.random()-0.5)*0.8))});
+    }
+  });
+
+  // order_reviews
+  var order_reviews = [{review_score:1,count:1617},{review_score:2,count:1537},{review_score:3,count:2851},{review_score:4,count:7670},{review_score:5,count:57420}];
+  var reviews_expanded = [];
+  order_reviews.forEach(function(r){ for(var i=0;i<Math.min(r.count,200);i++) reviews_expanded.push({review_score:r.review_score}); });
+
+  // state_category hotspots
+  var sc_risk = [];
+  var topStates = states.slice(0,8);
+  var topCats = categories.slice(0,8);
+  topStates.forEach(function(s){
+    topCats.forEach(function(c){
+      var excess = Math.round(((s.late_rate + c.late_rate)/2 - 10 + (Math.random()-0.5)*4)*100)/100;
+      sc_risk.push({state:s.state, category:c.category, late_rate:Math.round((s.late_rate+c.late_rate)/2*100)/100, excess_late_rate:excess, orders:Math.round(s.orders*c.orders/50000)});
+    });
+  });
+  sc_risk.sort(function(a,b){ return b.excess_late_rate-a.excess_late_rate; });
+
+  return {
+    monthly: monthly,
+    state_risk: states,
+    category_risk: categories,
+    seller_summary: sellers,
+    order_payments: pays,
+    installment_summary: installments,
+    delivery_summary: delivery_summary,
+    order_master: order_master,
+    order_reviews: reviews_expanded,
+    state_category_risk: sc_risk
+  };
+}
+
+// ── DATA LAYER ──────────────────────────────────────────────────
+// DEMO_DB  — always populated from buildDemoData(), NEVER modified by uploads
+// REAL_DB  — populated when user uploads their own dataset; empty until then
+// DB       — single control object tracking mode & filename
+var DEMO_DB = {sheets:{}, meta:{}};
+var REAL_DB = {sheets:{}, meta:{}};
+var DB = {hasReal:false, isDemo:true, filename:''};
+var CACHE = {};
+
+// gs() — read from REAL_DB first; fall back to DEMO_DB automatically
+function gs(n) {
+  if (DB.hasReal && REAL_DB.sheets[n] && REAL_DB.sheets[n].length) return REAL_DB.sheets[n];
+  return DEMO_DB.sheets[n] || [];
+}
+// gsMeta() — same priority for metadata
+function gsMeta(n) {
+  if (DB.hasReal && REAL_DB.meta[n]) return REAL_DB.meta[n];
+  return DEMO_DB.meta[n] || {rows:0,cols:0,columns:[]};
+}
+// All sheets available for Data Explorer (real takes priority)
+function allSheetsMeta() {
+  if (DB.hasReal) return REAL_DB.meta;
+  return DEMO_DB.meta;
+}
+function allSheetsData() {
+  if (DB.hasReal) return REAL_DB.sheets;
+  return DEMO_DB.sheets;
+}
+
+function loadDemoData() {
+  var demo = buildDemoData();
+  Object.keys(demo).forEach(function(name){
+    var raw = demo[name];
+    DEMO_DB.sheets[name] = raw;
+    DEMO_DB.meta[name] = {rows:raw.length, cols:raw.length>0?Object.keys(raw[0]).length:0, columns:raw.length>0?Object.keys(raw[0]):[]};
+  });
+  DB.isDemo = true;
+  DB.hasReal = false;
+}
+
+// Store one sheet of real data (called per CSV/sheet upload)
+function storeRealSheet(name, raw) {
+  REAL_DB.sheets[name] = raw;
+  REAL_DB.meta[name] = {rows:raw.length, cols:raw.length>0?Object.keys(raw[0]).length:0, columns:raw.length>0?Object.keys(raw[0]):[]};
+}
+
+// Called after at least one real sheet is stored — activates real mode
+function activateRealMode(filename) {
+  DB.hasReal = true;
+  DB.isDemo = false;
+  DB.filename = filename || DB.filename || 'Uploaded Dataset';
+  // Clear analysis cache so everything recomputes from real data
+  Object.keys(CACHE).forEach(function(k){ delete CACHE[k]; });
+  var sdot=document.getElementById('sdot'), sstat=document.getElementById('sstat');
+  if (sdot) sdot.className='sdot ready';
+  if (sstat) sstat.textContent=Object.keys(REAL_DB.sheets).length+' real sheets';
+  popFilters();
+}
+
+// Revert to demo mode (user can switch back)
+function revertToDemo() {
+  DB.hasReal = false;
+  DB.isDemo = true;
+  DB.filename = '';
+  Object.keys(CACHE).forEach(function(k){ delete CACHE[k]; });
+  var sdot=document.getElementById('sdot'), sstat=document.getElementById('sstat');
+  if (sdot) sdot.className='sdot demo';
+  if (sstat) sstat.textContent='Demo data';
+  popFilters();
+  navigate('cmd');
+  toast('Switched back to demo data','info');
+}
+
+async function loadWB() {
+  var paths = ['public/data/Olist_Final_Analytical_Workbook.xlsx','./public/data/Olist_Final_Analytical_Workbook.xlsx','data/Olist_Final_Analytical_Workbook.xlsx'];
+  for (var i=0;i<paths.length;i++) {
+    try {
+      var resp = await fetch(paths[i]);
+      if (!resp.ok) continue;
+      var ab = await resp.arrayBuffer();
+      if (!ab||ab.byteLength===0) continue;
+      var wb = XLSX.read(ab,{type:'array',cellDates:true});
+      wb.SheetNames.forEach(function(name){
+        var ws=wb.Sheets[name];
+        var raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false,dateNF:'yyyy-mm-dd'});
+        storeRealSheet(name, raw);
+      });
+      activateRealMode(paths[i].split('/').pop());
+      console.log('[DATA] Loaded:',paths[i],'Sheets:',wb.SheetNames);
+      return true;
+    } catch(e) { console.warn('[DATA] Failed:',paths[i],e.message); }
+  }
+  return false;
+}
+function fl(row) { for (var i=1;i<arguments.length;i++){ var k=arguments[i]; if (row[k]!=null&&row[k]!=='') return row[k]; } return null; }
+function nf(row) { var cands=Array.prototype.slice.call(arguments,1); return pN(fl.apply(null,[row].concat(cands))); }
+
+// ── ANALYSIS (works on both real & demo data) ───────────────────
+function getKPIs() {
+  if (CACHE.kpis) return CACHE.kpis;
+  var om=gs('order_master'), mo=gs('monthly'), it=gs('order_items')||[], rv=gs('order_reviews'), dl=gs('delivery_summary');
+  var tot=0;
+  if (mo.length) tot=mo.reduce(function(s,m){ return s+(nf(m,'orders','order_count','total_orders')||0); },0);
+  else tot=om.length||0;
+  var pv=0;
+  if (it.length) it.forEach(function(r){ pv+=nf(r,'price','item_price')||0; pv+=nf(r,'freight_value','freight')||0; });
+  else if (mo.length) mo.forEach(function(m){ pv+=nf(m,'product_value','revenue','total_value')||0; });
+  var avgR=null;
+  var sc2=rv.map(function(r){ return nf(r,'review_score','score'); }).filter(function(v){ return v!=null; });
+  if (sc2.length) avgR=Math.round(sc2.reduce(function(a,b){return a+b;},0)/sc2.length*100)/100;
+  var lO=0,anO=0;
+  if (dl.length) {
+    dl.forEach(function(r){ var dev=nf(r,'delivery_deviation_days','deviation','deviation_days'); if (dev!=null){anO++;if(dev>0)lO++;} });
+    if (!anO) { anO=tot||1; }
+  } else if (om.length) {
+    om.forEach(function(r){ var dev=nf(r,'delivery_deviation_days'); if(dev!=null){anO++;if(dev>0)lO++;} });
+  }
+  if (!anO) anO=tot||1;
+  var lr=Math.round(lO/anO*10000)/100;
+  if (!lr&&dl.length) {
+    // compute from buckets
+    var lateTotal=0,allTotal=0;
+    dl.forEach(function(r){ var ord=nf(r,'orders')||0; allTotal+=ord; var bkt=fl(r,'delivery_bucket','bucket'); if(bkt&&(bkt.indexOf('Late')>=0)) lateTotal+=ord; });
+    if(allTotal>0) lr=Math.round(lateTotal/allTotal*10000)/100;
+    lO=lateTotal; anO=allTotal;
+  }
+  var res={totalOrders:tot,productValue:Math.round(pv*100)/100,avgReview:avgR,lateOrders:lO,analyzedOrders:anO,lateRate:lr};
+  CACHE.kpis=res; return res;
+}
+
+function getBkt(dev){ if(dev<=-7)return'7+ Days Early'; if(dev<=-3)return'3-6 Days Early'; if(dev<=0)return'On/Slightly Early'; if(dev<=3)return'1-3 Days Late'; if(dev<=7)return'4-7 Days Late'; return'8+ Days Late'; }
+
+function getMo() {
+  if (CACHE.mo) return CACHE.mo;
+  var m=gs('monthly');
+  if (m.length) {
+    var r=m.map(function(row){ return {month:fl(row,'month','order_month','year_month','Month')||'',orders:nf(row,'orders','order_count','total_orders')||0,productValue:nf(row,'product_value','revenue','total_value','product_revenue')||0,avgReview:nf(row,'avg_review','average_review','review_score','avg_review_score')}; }).filter(function(x){ return x.month; }).sort(function(a,b){ return a.month.localeCompare(b.month); });
+    CACHE.mo=r; return r;
+  }
+  var orders=gs('order_master'); var grp={};
+  orders.forEach(function(r){ var ts=fl(r,'order_purchase_timestamp','purchase_timestamp','order_date')||''; var mo=ts?String(ts).slice(0,7):null; if(!mo||mo.length<7)return; if(!grp[mo])grp[mo]={month:mo,orders:0,productValue:0,reviews:[]}; grp[mo].orders++; var pval=nf(r,'payment_value','order_value'); if(pval)grp[mo].productValue+=pval; var rev=nf(r,'review_score'); if(rev)grp[mo].reviews.push(rev); });
+  var r2=Object.values(grp).sort(function(a,b){ return a.month.localeCompare(b.month); }).map(function(g){ return Object.assign({},g,{avgReview:g.reviews.length?Math.round(g.reviews.reduce(function(a,b){return a+b;},0)/g.reviews.length*100)/100:null}); });
+  CACHE.mo=r2; return r2;
+}
+
+function getPain() {
+  if (CACHE.pain) return CACHE.pain;
+  var ORDER=['7+ Days Early','3-6 Days Early','On/Slightly Early','1-3 Days Late','4-7 Days Late','8+ Days Late'];
+  var bkts={}; ORDER.forEach(function(b){ bkts[b]={bucket:b,reviews:[],orders:0}; });
+  var src=gs('delivery_summary');
+  if (src.length) {
+    src.forEach(function(r){
+      var bkt=fl(r,'delivery_bucket','bucket'); var rev=nf(r,'avg_review','review_score','score'); var ord=nf(r,'orders','order_count')||1;
+      if(!bkt) { var dev=nf(r,'delivery_deviation_days','deviation'); if(dev!=null) bkt=getBkt(dev); }
+      if(!bkt||ORDER.indexOf(bkt)<0) return;
+      if(rev!=null){ bkts[bkt].reviews.push(rev); bkts[bkt].orders+=ord; }
+    });
+  } else {
+    var om=gs('order_master');
+    om.forEach(function(r){ var dev=nf(r,'delivery_deviation_days','deviation'); var rev=nf(r,'review_score','score'); if(dev==null||rev==null)return; var b=getBkt(dev); bkts[b].reviews.push(rev); bkts[b].orders++; });
+  }
+  var res=ORDER.map(function(b){ var d=bkts[b]; if(!d||!d.reviews.length)return{bucket:b,avgReview:null,orders:0}; return {bucket:b,avgReview:Math.round(d.reviews.reduce(function(a,c){return a+c;},0)/d.reviews.length*100)/100,orders:d.orders}; });
+  CACHE.pain=res; return res;
+}
+
+function getStates() {
+  if (CACHE.states) return CACHE.states;
+  var d=gs('state_risk');
+  if (d.length) {
+    var r=d.map(function(row){ return {state:fl(row,'state','customer_state','State')||'?',orders:nf(row,'orders','total_orders','order_count')||0,late_orders:nf(row,'late_orders','lateOrders','late_order_count')||0,late_rate:nf(row,'late_rate','lateRate','pct_late','delivery_late_rate')||0,avg_late_days:nf(row,'avg_late_days','average_late_days')||0,avg_review:nf(row,'avg_review','average_review','avg_review_score')}; }).filter(function(r){ return r.state!=='?'; }).sort(function(a,b){ return b.late_rate-a.late_rate; });
+    CACHE.states=r; return r;
+  }
+  CACHE.states=[]; return [];
+}
+
+function getCats() {
+  if (CACHE.cats) return CACHE.cats;
+  var d=gs('category_risk');
+  if (d.length) {
+    var r=d.map(function(row){ return {category:fl(row,'category','product_category_name_english','product_category_name','Category')||'?',orders:nf(row,'orders','total_orders','order_count')||0,late_orders:nf(row,'late_orders','lateOrders')||0,late_rate:nf(row,'late_rate','lateRate','pct_late')||0,avg_late_days:nf(row,'avg_late_days','average_late_days')||0,avg_review:nf(row,'avg_review','average_review')}; }).filter(function(r){ return r.category!=='?'; }).sort(function(a,b){ return b.late_rate-a.late_rate; });
+    CACHE.cats=r; return r;
+  }
+  CACHE.cats=[]; return [];
+}
+
+function getSellers() {
+  if (CACHE.sellers) return CACHE.sellers;
+  var d=gs('seller_summary');
+  if (d.length) {
+    var r=d.map(function(row){ return {seller_id:fl(row,'seller_id','sellerId')||'?',total_orders:nf(row,'total_orders','orders','order_count')||0,late_orders:nf(row,'late_orders','lateOrders')||0,late_rate:nf(row,'late_rate','lateRate','pct_late')||0,avg_late_days:nf(row,'avg_late_days','average_late_days')||0,avg_review:nf(row,'avg_review','average_review')}; }).sort(function(a,b){ return b.late_rate-a.late_rate; });
+    CACHE.sellers=r; return r;
+  }
+  CACHE.sellers=[]; return [];
+}
+
+function getPays() {
+  if (CACHE.pays!==undefined) return CACHE.pays;
+  var pays=gs('order_payments'); if (!pays.length){ CACHE.pays=null; return null; }
+  // If raw payment rows (one per order)
+  if (pays[0] && pays[0].type && pays[0].orders!=null) { CACHE.pays=pays; return pays; }
+  var grp={};
+  pays.forEach(function(p){ var type=fl(p,'payment_type','type','payment_method')||'Unknown'; if(!grp[type])grp[type]={type:type,orders:0,totalValue:0,installments:[],reviews:[]}; grp[type].orders++; grp[type].totalValue+=nf(p,'payment_value','value','amount')||0; var inst=nf(p,'payment_installments','installments'); if(inst!=null&&inst>0)grp[type].installments.push(inst); });
+  var r=Object.values(grp).map(function(g){ return {type:g.type,orders:g.orders,totalValue:Math.round(g.totalValue*100)/100,avgOrderValue:g.orders>0?Math.round(g.totalValue/g.orders*100)/100:0,avgInstallments:g.installments.length?Math.round(g.installments.reduce(function(a,b){return a+b;},0)/g.installments.length*100)/100:0,avgReview:null}; }).sort(function(a,b){ return b.orders-a.orders; });
+  CACHE.pays=r; return r;
+}
+
+function getInst() {
+  if (CACHE.inst!==undefined) return CACHE.inst;
+  var d=gs('installment_summary');
+  if (d.length) {
+    var r=d.map(function(row){ return {n:nf(row,'installments','n','payment_installments','installment_count')||0,avgOrderValue:nf(row,'avg_order_value','avgOrderValue','average_order_value','avg_value')||0,orders:nf(row,'orders','order_count','count')||0}; }).filter(function(r){ return r.n>0; }).sort(function(a,b){ return a.n-b.n; });
+    CACHE.inst=r; return r;
+  }
+  CACHE.inst=[]; return [];
+}
+
+function getHotspots() {
+  if (CACHE.hotspots!==undefined) return CACHE.hotspots;
+  var d=gs('state_category_risk'); if(!d.length) d=gs('excess_risk');
+  CACHE.hotspots=d; return d;
+}
+
+function getDevDist() {
+  if (CACHE.devDist!==undefined) return CACHE.devDist;
+  var src=gs('delivery_summary');
+  if (src.length && src[0] && src[0].delivery_deviation_days!=null) {
+    // expand buckets into deviation values for histogram
+    var vals=[];
+    src.forEach(function(r){ var dev=nf(r,'delivery_deviation_days','deviation','deviation_days'); var ord=Math.min(nf(r,'orders','order_count')||1,100); if(dev!=null) for(var i=0;i<ord;i++) vals.push(dev+(Math.random()-0.5)*0.5); });
+    CACHE.devDist=vals; return vals;
+  }
+  var om=gs('order_master');
+  var vals2=om.map(function(r){ return nf(r,'delivery_deviation_days','deviation','deviation_days'); }).filter(function(v){ return v!=null&&isFinite(v); });
+  CACHE.devDist=vals2; return vals2;
+}
+
+function getDelivCorr() {
+  if (CACHE.dcorr!==undefined) return CACHE.dcorr;
+  var src=gs('order_master');
+  var pairs=src.slice(0,3000).map(function(r){ return {dev:nf(r,'delivery_deviation_days','deviation','deviation_days'),rev:nf(r,'review_score','score')}; }).filter(function(p){ return p.dev!=null&&p.rev!=null; });
+  var r=pearson(pairs.map(function(p){ return p.dev; }),pairs.map(function(p){ return p.rev; }));
+  CACHE.dcorr=r; return r;
+}
+</script>
+
+<script>
+// ── HTML HELPERS ────────────────────────────────────────────────
+var ICO = {
+  pkg:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>',
+  pay:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
+  star:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  alert:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  zap:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+  sel:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  clk:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+};
+function kpiCard(icon, val, label, sub, color) { color=color||'#00E5FF'; return '<div class="kc" style="--kclr:'+color+'"><div class="k-ic" style="background:'+color+'18">'+icon+'</div><div class="k-v" style="color:'+color+'">'+xe(String(val))+'</div><div class="k-l">'+xe(label)+'</div>'+(sub?'<div class="k-s">'+xe(sub)+'</div>':'')+'</div>'; }
+function cBox(id, title, sub, src, h, extra) { h=h||280; extra=extra||''; return '<div class="cc"><div class="ch"><div><div class="ct">'+xe(title)+'</div><div class="cs">'+xe(sub)+'</div><div style="font-size:10px;color:rgba(148,163,184,.4);margin-top:2px">SOURCE: '+xe(src)+'</div></div><div class="ctb"><button class="ctbtn" onclick="expPNG(\''+id+'\',\''+id+'\')" title="Export PNG"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>'+extra+'</div></div><div class="cb" style="height:'+h+'px"><canvas id="'+id+'" style="width:100%;height:100%"></canvas></div></div>'; }
+function insBox(text, type) { type=type||''; return '<div class="ins '+type+'">'+xe(text)+'</div>'; }
+function heroH(eye, title) { return '<div class="sh a1"><div style="font-family:\'Instrument Serif\',serif;font-size:10px;color:#00E5FF;letter-spacing:3px;text-transform:uppercase;margin-bottom:10px">'+xe(eye)+'</div><div style="font-family:\'Instrument Serif\',serif;font-size:32px;font-weight:400;line-height:1.2">'+xe(title)+'</div></div>'; }
+function rbadge(r) { var x=Number(r)||0; var cls=x>=15?'r-c':x>=12?'r-h':x>=9?'r-m':'r-s'; var lbl=x>=15?'CRITICAL':x>=12?'HIGH':x>=9?'MEDIUM':'LOW'; return '<span class="rb '+cls+'">'+lbl+'</span>'; }
+function demoBadge() {
+  if (!DB.isDemo) return '<span class="demo-badge" style="background:rgba(45,212,191,0.08);border-color:rgba(45,212,191,0.3);color:#2DD4BF">● LIVE: '+xe(DB.filename||'Workbook')+'</span>';
+  return '<span class="demo-badge">● DEMO DATA — <a href="#" onclick="event.preventDefault();navigate(\'upload\')" style="color:var(--a);text-decoration:underline;font-weight:600">upload real data</a></span>';
+}
+
+// ── FILTER STATE ────────────────────────────────────────────────
+var FILTERS = {state:'', category:'', payment:''};
+var CUR_PAGE = 'cmd';
+function setFilter(k, v){ FILTERS[k]=v; updChips(); navigate(CUR_PAGE); }
+function clearFilters(){ FILTERS.state=''; FILTERS.category=''; FILTERS.payment=''; var sf=document.getElementById('f-state'),cf=document.getElementById('f-cat'),pf=document.getElementById('f-pay'); if(sf)sf.value=''; if(cf)cf.value=''; if(pf)pf.value=''; updChips(); navigate(CUR_PAGE); }
+function updChips(){
+  var c=document.getElementById('chips'); if(!c) return;
+  var cps=[];
+  if(FILTERS.state) cps.push({k:'state',l:'State: '+FILTERS.state});
+  if(FILTERS.category) cps.push({k:'category',l:'Cat: '+FILTERS.category.slice(0,18)});
+  if(FILTERS.payment) cps.push({k:'payment',l:FILTERS.payment});
+  c.innerHTML=cps.map(function(ch){ return '<span class="chip">'+xe(ch.l)+'<button class="chip-x" onclick="setFilter(\''+ch.k+'\',\'\')">×</button></span>'; }).join('');
+}
+function popFilters(){
+  var states=getStates().map(function(s){ return s.state; }).filter(Boolean).sort();
+  var cats=getCats().map(function(c){ return c.category; }).filter(Boolean).sort();
+  var pays=getPays()?getPays().map(function(p){ return p.type; }):[];
+  var sf=document.getElementById('f-state'); if(sf){ sf.innerHTML='<option value="">All States</option>'+states.map(function(s){ return '<option value="'+xe(s)+'">'+xe(s)+'</option>'; }).join(''); sf.onchange=function(e){ setFilter('state',e.target.value); }; }
+  var cf=document.getElementById('f-cat'); if(cf){ cf.innerHTML='<option value="">All Categories</option>'+cats.slice(0,50).map(function(c){ return '<option value="'+xe(c)+'">'+xe(c)+'</option>'; }).join(''); cf.onchange=function(e){ setFilter('category',e.target.value); }; }
+  var pf=document.getElementById('f-pay'); if(pf){ pf.innerHTML='<option value="">All Payments</option>'+pays.map(function(p){ return '<option value="'+xe(p)+'">'+xe(p)+'</option>'; }).join(''); pf.onchange=function(e){ setFilter('payment',e.target.value); }; }
+}
+
+// ── PAGE: COMMAND CENTER ────────────────────────────────────────
+function renderCmd(pg) {
+  var kpis=getKPIs();
+  pg.innerHTML = heroH('Marketplace Intelligence','See the signal. Find the risk. Take action.')+demoBadge()+
+  '<div class="kg a2">'+
+    kpiCard(ICO.pkg, fN(kpis.totalOrders), 'Total Orders', 'Full dataset', '#00E5FF')+
+    kpiCard(ICO.pay, fBRL(kpis.productValue), 'Product Value', 'Sum of order values', '#8B5CF6')+
+    kpiCard(ICO.star, kpis.avgReview!=null?kpis.avgReview+' ★':'N/A', 'Average Review', 'Out of 5.0', '#2DD4BF')+
+    kpiCard(ICO.alert, fP(kpis.lateRate), 'Late Delivery Rate', 'Of analyzed orders', '#FF4D6D')+
+  '</div>'+
+  '<div class="cc a3" style="margin-bottom:20px"><div class="ch"><div><div class="ct">Marketplace Scale vs Customer Experience</div><div class="cs">Monthly orders and average review score</div></div><div class="ctb"><div class="cts" id="mtog"><button class="ct-t on" data-v="monthly">Monthly</button><button class="ct-t" data-v="quarterly">Quarterly</button></div><button class="ctbtn" onclick="expPNG(\'c-monthly\',\'marketplace\')" title="PNG"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button></div></div><div class="cb" style="height:280px"><canvas id="c-monthly" style="width:100%;height:100%"></canvas></div>'+
+  insBox('Growth trajectory shows strong order volume increases. Review scores show a slight downward trend as scale increased.')+'</div>'+
+  '<div class="g2">'+cBox('c-pain-mini','Customer Pain Curve','Avg review by delivery timing','delivery_summary',220)+cBox('c-state-mini','Geographic Risk Leaders','Late delivery rate by state','state_risk',220)+'</div>'+
+  '<div class="ip a5"><div class="ip-t">⚡ Key Analytical Findings</div><div id="cmd-ins"></div></div>';
+
+  setTimeout(function(){
+    drawMonthly('monthly');
+    document.querySelectorAll('#mtog .ct-t').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        document.querySelectorAll('#mtog .ct-t').forEach(function(b){ b.classList.remove('on'); });
+        btn.classList.add('on');
+        drawMonthly(btn.dataset.v);
+      });
+    });
+    drawPainMini(); drawStateMini(); renderIns(document.getElementById('cmd-ins'));
+  }, 50);
+}
+
+function drawMonthly(view) {
+  var data=getMo(); if(!data.length){ nd('c-monthly','Monthly data not available.'); return; }
+  if (view==='quarterly') {
+    var qm={};
+    data.forEach(function(m){ var parts=(m.month||'').split('-'); if(parts.length<2)return; var q=parts[0]+'-Q'+Math.ceil(parseInt(parts[1])/3); if(!qm[q])qm[q]={month:q,orders:0,pv:0,revSum:0,revCnt:0}; qm[q].orders+=m.orders||0; qm[q].pv+=m.productValue||0; var r=m.avgReview; if(r!=null){qm[q].revSum+=r;qm[q].revCnt++;} });
+    data=Object.values(qm).sort(function(a,b){ return a.month.localeCompare(b.month); }).map(function(q){ return Object.assign({},q,{avgReview:q.revCnt?Math.round(q.revSum/q.revCnt*100)/100:null}); });
+  }
+  var labels=data.map(function(m){ return m.month||''; });
+  var orders=data.map(function(m){ return m.orders||0; });
+  var reviews=data.map(function(m){ return m.avgReview; });
+  var hasRev=reviews.some(function(v){ return v!=null; });
+  kc('c-monthly'); sc('c-monthly');
+  var cv=document.getElementById('c-monthly'); if(!cv) return;
+  var datasets=[{type:'bar',label:'Orders',data:cV(orders),backgroundColor:'rgba(0,229,255,0.45)',borderWidth:0,borderRadius:3,yAxisID:'y'}];
+  if (hasRev) datasets.push({type:'line',label:'Avg Review',data:cV(reviews),borderColor:'#A855F7',backgroundColor:'transparent',pointRadius:3,tension:0.4,borderWidth:2.5,fill:false,yAxisID:'y2'});
+  var scales={x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10,family:'Inter'},maxRotation:45},border:{display:false}},y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:10,family:'Inter'}},border:{display:false},beginAtZero:true}};
+  if (hasRev) scales.y2={position:'right',min:1,max:5,grid:{display:false},ticks:{color:'#A855F7',font:{size:10}},border:{display:false}};
+  var ch=new Chart(cv,{data:{labels:labels,datasets:datasets},options:{responsive:true,maintainAspectRatio:false,animation:{duration:600},plugins:{legend:{labels:{color:'#94A3B8',font:{family:'Inter',size:12},padding:14}},tooltip:{backgroundColor:'rgba(6,14,32,0.96)',borderColor:'rgba(255,255,255,0.14)',borderWidth:1,titleColor:'#fff',bodyColor:'#94A3B8',padding:12,cornerRadius:10}},scales:scales}});
+  R['c-monthly']=ch;
+}
+
+function drawPainMini() {
+  var pain=getPain().filter(function(p){ return p.avgReview!=null; });
+  if(!pain.length){ nd('c-pain-mini','No delivery data.'); return; }
+  var colors=pain.map(function(p){ return p.bucket.indexOf('8+')>=0?'#FF4D6D':p.bucket.indexOf('4-7')>=0?'#FF7832':p.bucket.indexOf('1-3')>=0?'#F59E0B':'#2DD4BF'; });
+  mkBar('c-pain-mini', pain.map(function(p){ return p.bucket.replace('On/Slightly Early','On Time'); }), [{label:'Avg Review',data:pain.map(function(p){ return p.avgReview; }),bg:colors,radius:4}], {yMin:1,yMax:5});
+}
+
+function drawStateMini() {
+  var states=getStates().slice(0,10);
+  if(!states.length){ nd('c-state-mini','No state data.'); return; }
+  mkHBar('c-state-mini', states.map(function(s){ return s.state||'?'; }), states.map(function(s){ return s.late_rate||0; }), {xTitle:'Late Rate %',colors:states.map(function(s){ return h2a(rC(s.late_rate||0),0.78); })});
+}
+
+function renderIns(el) {
+  if (!el) return;
+  var ins=[]; var kpis=getKPIs(); var corr=getDelivCorr(); var pain=getPain(); var top=getStates()[0]; var topCat=getCats()[0];
+  if (kpis.lateRate>5) ins.push({t:'c',w:'Late Delivery Rate: '+fP(kpis.lateRate),y:'A significant share of analyzed orders experienced late deliveries.',e:'Late orders: '+fN(kpis.lateOrders)+' | Analyzed: '+fN(kpis.analyzedOrders)});
+  if (corr.r!=null) ins.push({t:'w',w:'Delivery–Satisfaction Association',y:'Delivery deviation has a '+cStr(corr.r)+' '+(corr.r<0?'negative':'positive')+' linear association with review score.',e:'Pearson r = '+corr.r+' · '+fmtP(corr.p)+' · n = '+fN(corr.n)+'\n⚠ Association ≠ causation'});
+  var early=pain.find(function(p){ return p.bucket==='7+ Days Early'; }), late=pain.find(function(p){ return p.bucket==='8+ Days Late'; });
+  if (early&&early.avgReview&&late&&late.avgReview) ins.push({t:'w',w:Math.round((early.avgReview-late.avgReview)*100)/100+'-Point Satisfaction Gap',y:'Early deliveries rate substantially higher than severely late ones.',e:'7+ early: '+early.avgReview+'★ | 8+ late: '+late.avgReview+'★'});
+  if (top) ins.push({t:top.late_rate>12?'c':'w',w:top.state+' — Highest-Risk State',y:top.state+' has the highest late delivery rate in the dataset.',e:'Late rate: '+fP(top.late_rate)+' | Late orders: '+fN(top.late_orders)+' | Total: '+fN(top.orders)});
+  if (topCat) ins.push({t:'w',w:'"'+topCat.category+'" — Highest-Risk Category',y:'This category shows the highest late delivery rate.',e:'Late rate: '+fP(topCat.late_rate)+' | Orders: '+fN(topCat.orders)});
+  if (!ins.length) { el.innerHTML='<div class="ii p"><div class="ii-w">Demo Data Active</div>All charts are showing built-in Olist marketplace demo data.</div>'; return; }
+  el.innerHTML=ins.map(function(i){ return '<div class="ii '+i.t+'"><div class="ii-w">'+xe(i.w)+'</div><div>'+xe(i.y)+'</div><div class="ii-e">'+xe(i.e)+'</div></div>'; }).join('');
+}
+</script>
+
+<script>
+// ── PAGE: CUSTOMER EXPERIENCE ───────────────────────────────────
+function renderCustomer(pg) {
+  var corr=getDelivCorr();
+  var badges=corr.r!=null?'<div class="flex g8 fw"><span class="bdg bc">r = '+corr.r+'</span><span class="bdg bp">'+fmtP(corr.p)+'</span><span class="bdg bg2">n = '+fN(corr.n)+'</span></div>':'';
+  pg.innerHTML=heroH('Customer Experience','How delivery performance shapes satisfaction')+demoBadge()+
+  '<div class="cc a2" style="margin-bottom:20px"><div class="ch"><div><div class="ct" style="font-size:16px">The Customer Pain Curve</div><div class="cs">Average review by delivery timing bucket</div></div>'+badges+'</div><div class="cb" style="height:300px"><canvas id="c-pain-full" style="width:100%;height:100%"></canvas></div>'+
+  insBox('Delivery lateness is strongly associated with lower satisfaction. Earlier deliveries consistently earn 4+ star reviews.')+'</div>'+
+  '<div class="g2">'+cBox('c-rev-dist','Review Score Distribution','Share of orders per score','order_reviews',240)+cBox('c-dev-sev','Delivery Outcome Composition','Orders by delivery bucket','delivery_summary',240)+'</div>'+
+  '<div id="pain-tbl-wrap"></div>';
+  setTimeout(function(){
+    var pain=getPain().filter(function(p){ return p.avgReview!=null; });
+    if (pain.length) mkArea('c-pain-full', pain.map(function(p){ return p.bucket; }), [{label:'Avg Review',data:pain.map(function(p){ return p.avgReview; }),color:'#00E5FF'}], {yMin:1,yMax:5,yTitle:'Avg Review Score'});
+    else nd('c-pain-full','No delivery data available.');
+    var revs=gs('order_reviews');
+    if (revs.length) {
+      var freq={1:0,2:0,3:0,4:0,5:0};
+      revs.forEach(function(r){ var s=Math.round(pN(r.review_score||r.score)||0); if(s>=1&&s<=5)freq[s]++; });
+      mkDoughnut('c-rev-dist',['1★','2★','3★','4★','5★'],[freq[1],freq[2],freq[3],freq[4],freq[5]]);
+    } else nd('c-rev-dist','No review data available.');
+    if (pain.length) {
+      var colors=pain.map(function(p){ return p.bucket.indexOf('8+')>=0?'#FF4D6D':p.bucket.indexOf('4-7')>=0?'#FF7832':p.bucket.indexOf('1-3')>=0?'#F59E0B':p.bucket.indexOf('Slightly')>=0?'#00E5FF':'#2DD4BF'; });
+      mkBar('c-dev-sev', pain.map(function(p){ return p.bucket.replace('On/Slightly Early','On Time'); }), [{label:'Orders',data:pain.map(function(p){ return p.orders; }),bg:colors,radius:4}]);
+    }
+    var tw=document.getElementById('pain-tbl-wrap');
+    if (tw&&pain.length){ tw.innerHTML='<div id="pain-tbl"></div>'; mkTbl('pain-tbl',pain,['bucket','avgReview','orders'],{pageSize:8}); }
+  }, 50);
+}
+
+// ── PAGE: DELIVERY INTELLIGENCE ─────────────────────────────────
+function renderDelivery(pg) {
+  pg.innerHTML=heroH('Delivery Intelligence','Where does delivery performance break down?')+demoBadge()+
+  '<div class="g2">'+cBox('c-dev-hist','Delivery Deviation Distribution','Negative = early, positive = late (days)','delivery_summary',240)+cBox('c-dev-comp','Delivery Outcome Composition','Share of orders by outcome','delivery_summary',240)+'</div>'+
+  cBox('c-dev-scatter','Delivery Deviation vs Review Score','Negative association between lateness and satisfaction','order_master',280)+
+  '<div id="dev-tbl-wrap"></div>';
+  setTimeout(function(){
+    var devVals=getDevDist();
+    if (devVals.length>=5) mkHist('c-dev-hist',devVals,{xLabel:'Days Deviation'});
+    else nd('c-dev-hist','Not enough deviation data.');
+    var pain=getPain().filter(function(p){ return p.orders>0; });
+    if (pain.length) mkDoughnut('c-dev-comp',pain.map(function(p){ return p.bucket; }),pain.map(function(p){ return p.orders; }));
+    else nd('c-dev-comp','No delivery data.');
+    var src=gs('order_master');
+    var pts=src.slice(0,2000).map(function(r){ var d=nf(r,'delivery_deviation_days','deviation','deviation_days'); var rv=nf(r,'review_score','score'); return (d!=null&&rv!=null)?{x:d,y:rv}:null; }).filter(Boolean).slice(0,600);
+    if (pts.length>=5) mkScatter('c-dev-scatter',[{label:'Order',data:pts,color:'#00E5FF',r:3}],{xTitle:'Deviation (days)',yTitle:'Review Score',yMin:1,yMax:5});
+    else nd('c-dev-scatter','Not enough scatter data.');
+    var dw=document.getElementById('dev-tbl-wrap');
+    if (dw&&pain.length){ dw.innerHTML='<div id="dev-tbl"></div>'; mkTbl('dev-tbl',pain,['bucket','orders','avgReview'],{pageSize:8}); }
+  }, 50);
+}
+
+// ── PAGE: GEOGRAPHIC INTELLIGENCE ──────────────────────────────
+function renderGeography(pg) {
+  pg.innerHTML=heroH('Geographic Intelligence','Where is delivery risk concentrated?')+demoBadge()+
+  '<div class="g2" style="align-items:start">'+
+  '<div>'+cBox('c-state-bar','States by Late Delivery Rate','Click a bar to view state detail','state_risk',380)+'<div style="font-size:11px;color:#64748b;padding:0 20px 14px">Click any bar to view details →</div></div>'+
+  '<div><div class="dp a4 mb20" id="state-detail"><div style="color:#64748b;text-align:center;padding:40px 0">Click a state bar to view details</div></div>'+cBox('c-geo-bubble','Geographic Risk Matrix','Late Rate × Avg Review — bubble = late orders','state_risk',240)+'</div>'+
+  '</div>'+
+  '<div id="state-tbl-wrap"></div>';
+  setTimeout(function(){
+    var states=getStates();
+    if (!states.length){ nd('c-state-bar','No state data.'); nd('c-geo-bubble','No data.'); return; }
+    var top15=states.slice(0,15);
+    kc('c-state-bar'); sc('c-state-bar');
+    var cv=document.getElementById('c-state-bar'); if (!cv) return;
+    var colors=top15.map(function(s){ return h2a(rC(s.late_rate||0),0.78); });
+    var ch=new Chart(cv,{type:'bar',data:{labels:top15.map(function(s){ return s.state||'?'; }),datasets:[{data:top15.map(function(s){ return s.late_rate||0; }),backgroundColor:colors,borderRadius:4,label:'Late Rate %'}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',animation:{duration:600},plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(6,14,32,0.96)',borderColor:'rgba(255,255,255,0.14)',borderWidth:1,titleColor:'#fff',bodyColor:'#94A3B8',padding:12,cornerRadius:10}},onClick:function(e,els){ if(els.length) showStateDetail(top15[els[0].index]); },scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748b',font:{size:11}},border:{display:false},title:{display:true,text:'Late Rate %',color:'#64748b'}},y:{grid:{display:false},ticks:{color:'#64748b',font:{size:11}},border:{display:false}}}}});
+    R['c-state-bar']=ch;
+    var bubs=states.slice(0,20).map(function(s){ return {x:s.late_rate||0,y:s.avg_review||3,r:Math.max(5,Math.min(30,(s.late_orders||0)/40)),label:s.state||'?'}; });
+    mkBubble('c-geo-bubble',[{label:'States',data:bubs,color:'#00E5FF'}],{xTitle:'Late Rate %',yTitle:'Avg Review'});
+    var sw=document.getElementById('state-tbl-wrap');
+    if (sw){ sw.innerHTML='<div id="state-tbl"></div>'; mkTbl('state-tbl',states,['state','orders','late_orders','late_rate','avg_late_days','avg_review'],{pageSize:15}); }
+  }, 50);
+}
+function showStateDetail(s){
+  var el=document.getElementById('state-detail'); if(!el||!s) return;
+  el.innerHTML='<div class="flex jb aic mb14"><div style="font-family:\'Instrument Serif\',serif;font-size:22px">'+xe(s.state||'?')+'</div>'+rbadge(s.late_rate||0)+'</div>'+
+  [['Total Orders',fN(s.orders)],['Late Orders',fN(s.late_orders||0)],['Late Rate',fP(s.late_rate)],['Avg Late Days',(s.avg_late_days||0)+' days'],['Avg Review',(s.avg_review||'N/A')+' ★']].map(function(row){ return '<div class="mr"><span class="mn">'+xe(row[0])+'</span><span class="mv">'+xe(String(row[1]))+'</span></div>'; }).join('')+
+  '<div style="font-size:10px;color:#64748b;margin-top:10px;font-style:italic">Click to apply filter →</div>';
+  setFilter('state', s.state);
+}
+
+// ── PAGE: CATEGORY INTELLIGENCE ─────────────────────────────────
+function renderCategory(pg) {
+  pg.innerHTML=heroH('Category Intelligence','Which categories face the greatest operational risk?')+demoBadge()+
+  '<div class="g2">'+cBox('c-cat-bubble','Category Risk Matrix','Late Rate × Avg Review — bubble = orders','category_risk',320)+cBox('c-cat-late','Top Categories by Late Rate','Ranked by late delivery rate','category_risk',320)+'</div>'+
+  cBox('c-cat-rev','Category Average Review Score','Overall review per category','category_risk',240)+
+  '<div id="cat-tbl-wrap"></div>';
+  setTimeout(function(){
+    var cats=getCats();
+    if (!cats.length){ ['c-cat-bubble','c-cat-late','c-cat-rev'].forEach(function(id){ nd(id,'No category data.'); }); return; }
+    var bubs=cats.slice(0,20).map(function(c){ return {x:c.late_rate||0,y:c.avg_review||3,r:Math.max(5,Math.min(25,(c.orders||0)/600)),label:(c.category||'?').slice(0,22)}; });
+    mkBubble('c-cat-bubble',[{label:'Categories',data:bubs,color:'#8B5CF6'}],{xTitle:'Late Rate %',yTitle:'Avg Review'});
+    var top12=cats.slice(0,12);
+    mkHBar('c-cat-late', top12.map(function(c){ return (c.category||'?').slice(0,22); }), top12.map(function(c){ return c.late_rate||0; }), {xTitle:'Late Rate %'});
+    var byRev=cats.slice().sort(function(a,b){ return (b.avg_review||0)-(a.avg_review||0); }).slice(0,12);
+    mkBar('c-cat-rev', byRev.map(function(c){ return (c.category||'?').slice(0,18); }), [{label:'Avg Review',data:byRev.map(function(c){ return c.avg_review||0; }),bg:'#2DD4BF',radius:4}], {yMin:3,yMax:5});
+    var cw=document.getElementById('cat-tbl-wrap');
+    if (cw){ cw.innerHTML='<div id="cat-tbl"></div>'; mkTbl('cat-tbl',cats,['category','orders','late_orders','late_rate','avg_late_days','avg_review'],{pageSize:15}); }
+  }, 50);
+}
+
+// ── PAGE: SELLER INTELLIGENCE ────────────────────────────────────
+function renderSeller(pg) {
+  pg.innerHTML=heroH('Seller Intelligence','Which sellers concentrate the most delivery risk?')+demoBadge()+
+  '<div class="kg a2" id="seller-kpis"></div>'+
+  '<div class="g2">'+cBox('c-sell-bubble','Seller Performance Matrix','Late Rate × Avg Review — bubble = orders','seller_summary',320)+cBox('c-sell-conc','Seller Risk Concentration','Late-order share: top 10% vs rest','seller_summary',320)+'</div>'+
+  '<div id="sell-tbl-wrap"></div>';
+  setTimeout(function(){
+    var sellers=getSellers(); var kEl=document.getElementById('seller-kpis');
+    if (!sellers.length){ if(kEl)kEl.innerHTML='<div style="color:#64748b">No seller data available.</div>'; nd('c-sell-bubble','No data.'); nd('c-sell-conc','No data.'); return; }
+    var total=sellers.length, top10n=Math.max(1,Math.ceil(total*0.1));
+    var topS=sBy(sellers,'total_orders','desc').slice(0,top10n);
+    var totalLate=sellers.reduce(function(s,x){ return s+(x.late_orders||0); },0);
+    var topLate=topS.reduce(function(s,x){ return s+(x.late_orders||0); },0);
+    var topShare=totalLate>0?Math.round(topLate/totalLate*1000)/10:0;
+    if (kEl) kEl.innerHTML=kpiCard(ICO.sel,total,'Sellers Analyzed','Total','#00E5FF')+kpiCard(ICO.sel,top10n,'Top 10% Sellers','By volume','#8B5CF6')+kpiCard(ICO.zap,topShare+'%','Top 10% Late Share','Concentration','#F59E0B')+kpiCard(ICO.clk,fN(totalLate),'Total Late Orders','All sellers','#FF4D6D');
+    var bubs=sellers.slice(0,60).map(function(s){ return {x:s.late_rate||0,y:s.avg_review||3,r:Math.max(4,Math.min(20,(s.total_orders||0)/15)),label:(s.seller_id||'?').slice(0,12)}; });
+    mkBubble('c-sell-bubble',[{label:'Sellers',data:bubs,color:'#F59E0B'}],{xTitle:'Late Rate %',yTitle:'Avg Review'});
+    mkDoughnut('c-sell-conc',['Top 10% ('+top10n+')','Others ('+(total-top10n)+')'],[topLate,Math.max(0,totalLate-topLate)]);
+    var sw=document.getElementById('sell-tbl-wrap');
+    if (sw){ sw.innerHTML='<div id="sell-tbl"></div>'; mkTbl('sell-tbl',sBy(sellers,'late_rate','desc'),['seller_id','total_orders','late_orders','late_rate','avg_late_days','avg_review'],{pageSize:15}); }
+  }, 50);
+}
+
+// ── PAGE: PAYMENT INTELLIGENCE ───────────────────────────────────
+function renderPayment(pg) {
+  pg.innerHTML=heroH('Payment Intelligence','How does payment behavior relate to order value?')+demoBadge()+
+  '<div class="g2">'+cBox('c-pay-dist','Payment Type Distribution','Order count by method','order_payments',240)+cBox('c-pay-val','Avg Order Value by Payment Type','Product value per transaction','order_payments',240)+'</div>'+
+  cBox('c-install','Installments vs Average Order Value','Higher installments → higher order values','installment_summary',260)+
+  '<div id="pay-corr-wrap"></div><div id="pay-tbl-wrap"></div>';
+  setTimeout(function(){
+    var pays=getPays();
+    if (pays&&pays.length) {
+      mkDoughnut('c-pay-dist', pays.map(function(p){ return p.type; }), pays.map(function(p){ return p.orders; }));
+      mkHBar('c-pay-val', pays.map(function(p){ return p.type; }), pays.map(function(p){ return p.avgOrderValue; }), {xTitle:'Avg Order Value (R$)'});
+      var ptw=document.getElementById('pay-tbl-wrap');
+      if (ptw){ ptw.innerHTML='<div id="pay-tbl"></div>'; mkTbl('pay-tbl',pays,['type','orders','totalValue','avgOrderValue','avgInstallments','avgReview'],{pageSize:8}); }
+    } else { nd('c-pay-dist','No payment data.'); nd('c-pay-val','No data.'); }
+    var inst=getInst();
+    if (inst&&inst.length>=3) {
+      var xA=inst.map(function(i){ return i.n||0; }), yA=inst.map(function(i){ return i.avgOrderValue||0; });
+      mkLine('c-install', xA.map(String), [{label:'Avg Order Value (R$)',data:yA,color:'#00E5FF',fill:true}], {yTitle:'Avg Order Value (R$)'});
+      var corr2=pearson(xA,yA);
+      var cw=document.getElementById('pay-corr-wrap');
+      if (cw&&corr2.r!=null) cw.innerHTML='<div class="ip"><div class="ip-t">Installments × Order Value</div><div class="ii"><div class="ii-w">Correlation</div>Installment count shows a <strong>'+cStr(corr2.r)+'</strong> association with avg order value.<div class="ii-e">Pearson r = '+corr2.r+' · '+fmtP(corr2.p)+' · n = '+corr2.n+'<br>⚠ Association ≠ causation</div></div></div>';
+    } else nd('c-install','Not enough installment data.');
+  }, 50);
+}
+
+// ── PAGE: RISK INTELLIGENCE ──────────────────────────────────────
+function renderRisk(pg) {
+  pg.innerHTML=heroH('Risk Intelligence','Where are the highest-priority hotspots?')+demoBadge()+
+  '<div class="g2">'+cBox('c-risk-state','State Risk Radar','Late rate across top states','state_risk',280)+cBox('c-risk-cat','Category Risk Radar','Late rate across top categories','category_risk',280)+'</div>'+
+  '<div class="cc a3 mb20"><div class="ch"><div><div class="ct">State × Category Excess Late Rate Heatmap</div><div class="cs">Click a cell to view details</div></div></div><div class="cb p18"><div id="risk-hm"></div><div id="risk-hm-detail" style="margin-top:12px"></div></div></div>'+
+  cBox('c-hotspot','Top Intervention Opportunities','Ranked by excess late rate','state_category_risk',320)+
+  '<div id="hotspot-tbl-wrap"></div>';
+  setTimeout(function(){
+    var states=getStates(), cats=getCats(), hotspots=getHotspots();
+    if (states.length>=3) mkRadar('c-risk-state', states.slice(0,8).map(function(s){ return s.state||'?'; }), [{label:'Late Rate %',data:states.slice(0,8).map(function(s){ return s.late_rate||0; }),color:'#FF4D6D'}]);
+    else nd('c-risk-state','Not enough state data.');
+    if (cats.length>=3) mkRadar('c-risk-cat', cats.slice(0,8).map(function(c){ return (c.category||'?').slice(0,14); }), [{label:'Late Rate %',data:cats.slice(0,8).map(function(c){ return c.late_rate||0; }),color:'#8B5CF6'}]);
+    else nd('c-risk-cat','Not enough category data.');
+    var hmEl=document.getElementById('risk-hm');
+    if (hmEl&&hotspots.length) {
+      var s0=hotspots[0];
+      var stKey=Object.keys(s0).find(function(k){ return k.toLowerCase().indexOf('state')>=0; })||'state';
+      var catKey=Object.keys(s0).find(function(k){ return k.toLowerCase().indexOf('cat')>=0; })||'category';
+      var exKey=Object.keys(s0).find(function(k){ return k.toLowerCase().indexOf('excess')>=0||k.toLowerCase().indexOf('extra')>=0; })||Object.keys(s0).find(function(k){ return k.toLowerCase().indexOf('late_rate')>=0; })||'late_rate';
+      var rowSet=new Set(), colSet=new Set();
+      hotspots.forEach(function(h){ rowSet.add(h[stKey]||'?'); colSet.add((h[catKey]||'?').slice(0,16)); });
+      var rows=Array.from(rowSet).slice(0,10), cols=Array.from(colSet).slice(0,8);
+      var lookup={};
+      hotspots.forEach(function(h){ lookup[(h[stKey]||'?')+'||'+(h[catKey]||'?').slice(0,16)]=h; });
+      var getV=function(r,c){ var h=lookup[r+'||'+c]; return h?pN(h[exKey]):null; };
+      var getCol=function(v){ if(v==null)return'rgba(255,255,255,.04)'; var n=Number(v); if(n>7)return'rgba(255,77,109,.72)'; if(n>4)return'rgba(255,120,50,.62)'; if(n>2)return'rgba(245,158,11,.50)'; if(n>0)return'rgba(245,158,11,.26)'; return'rgba(45,212,191,.32)'; };
+      var html='<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:11px"><thead><tr><th style="padding:5px 8px;color:#64748b;text-align:left"></th>'+cols.map(function(c){ return '<th style="padding:5px 8px;color:#64748b;white-space:nowrap" title="'+xe(c)+'">'+xe(c.slice(0,10))+'</th>'; }).join('')+'</tr></thead><tbody>';
+      rows.forEach(function(row){ html+='<tr><td style="padding:4px 10px;font-weight:700;font-size:12px;white-space:nowrap;color:#94A3B8">'+xe(row)+'</td>'; cols.forEach(function(col){ var v=getV(row,col); var bg=getCol(v); var txt=v!=null?Number(v).toFixed(1):'—'; html+='<td style="width:60px;height:36px;text-align:center;background:'+bg+';color:#fff;border:1px solid rgba(255,255,255,.04);font-size:10px;font-weight:600;cursor:pointer" onclick="hmClick(\''+xe(row)+'\',\''+xe(col)+'\')" title="'+xe(row)+'×'+xe(col)+': '+txt+'">'+txt+'</td>'; }); html+='</tr>'; });
+      html+='</tbody></table></div>';
+      html+='<div style="display:flex;gap:10px;margin-top:10px;font-size:11px;color:#64748b;flex-wrap:wrap">'+[['Below 0','rgba(45,212,191,.32)'],['0-2','rgba(245,158,11,.26)'],['2-4','rgba(245,158,11,.50)'],['4-7','rgba(255,120,50,.62)'],['7+','rgba(255,77,109,.72)']].map(function(m){ return '<span style="display:flex;align-items:center;gap:4px"><span style="width:12px;height:12px;border-radius:2px;background:'+m[1]+';display:inline-block"></span>'+m[0]+' pp</span>'; }).join('')+'</div>';
+      hmEl.innerHTML=html;
+      window._hmData={rows:rows,cols:cols,lookup:lookup,exKey:exKey,hotspots:hotspots,stKey:stKey,catKey:catKey};
+      var top20=hotspots.slice().sort(function(a,b){ return (pN(b[exKey])||0)-(pN(a[exKey])||0); }).slice(0,20);
+      mkHBar('c-hotspot', top20.map(function(h){ return (h[stKey]||'?')+' × '+(h[catKey]||'?').slice(0,14); }), top20.map(function(h){ return pN(h[exKey])||0; }), {xTitle:'Excess Late Rate pp'});
+      var htw=document.getElementById('hotspot-tbl-wrap');
+      if (htw){ htw.innerHTML='<div id="hotspot-tbl"></div>'; mkTbl('hotspot-tbl',hotspots,Object.keys(s0).slice(0,8),{pageSize:15}); }
+    } else {
+      if (hmEl) hmEl.innerHTML='<div class="nd"><div class="nd-t">No Hotspot Data</div>state_category_risk sheet not found.</div>';
+      nd('c-hotspot','No hotspot data.');
+    }
+  }, 50);
+}
+window.hmClick = function(row, col){
+  var d=window._hmData; if(!d) return;
+  var h=d.lookup[row+'||'+col];
+  var det=document.getElementById('risk-hm-detail'); if(!det||!h) return;
+  det.innerHTML='<div class="dp"><div style="font-family:\'Instrument Serif\',serif;font-size:18px;margin-bottom:12px">'+xe(row)+' × '+xe(col)+'</div>'+Object.entries(h).slice(0,7).map(function(kv){ return '<div class="mr"><span class="mn">'+xe(kv[0])+'</span><span class="mv">'+xe(String(kv[1]||'—'))+'</span></div>'; }).join('')+'</div>';
+};
+</script>
+
+<script>
+// ── PAGE: DATA EXPLORER ──────────────────────────────────────────
+function renderExplorer(pg) {
+  var sheets=Object.entries(DB.meta).filter(function(e){ return e[1].rows>0; });
+  pg.innerHTML=heroH('Data Explorer','Build your own visualization from any dataset')+demoBadge()+
+  '<div class="ec a2"><div class="ecg">'+
+  '<div><div class="clbl">Dataset</div><select class="csel" id="ex-sheet">'+(sheets.length?sheets.map(function(e){ return '<option value="'+xe(e[0])+'">'+xe(e[0])+' ('+fN(e[1].rows)+' rows)</option>'; }).join(''):'<option>No sheets loaded</option>')+'</select></div>'+
+  '<div><div class="clbl">Chart Type</div><select class="csel" id="ex-type"><option value="bar">Bar</option><option value="hbar">Horizontal Bar</option><option value="line">Line</option><option value="area">Area</option><option value="scatter">Scatter</option><option value="doughnut">Doughnut</option><option value="radar">Radar</option><option value="histogram">Histogram</option></select></div>'+
+  '<div><div class="clbl">X / Label</div><select class="csel" id="ex-x"></select></div>'+
+  '<div><div class="clbl">Y / Value</div><select class="csel" id="ex-y"></select></div>'+
+  '<div><div class="clbl">Aggregation</div><select class="csel" id="ex-agg"><option value="avg">Average</option><option value="sum">Sum</option><option value="count">Count</option><option value="max">Max</option><option value="min">Min</option></select></div>'+
+  '<div><div class="clbl">&nbsp;</div><button class="btn-go" id="ex-go">Generate Chart</button></div>'+
+  '</div></div>'+
+  cBox('ex-chart','Explorer Chart','Configure above and click Generate','Selected Dataset',340)+
+  '<div id="ex-tbl-wrap"></div>';
+
+  var updCols=function(){
+    var sh=document.getElementById('ex-sheet')?document.getElementById('ex-sheet').value:'';
+    var d=DB.sheets[sh]||[];
+    var cols=d.length?Object.keys(d[0]):[];
+    ['ex-x','ex-y'].forEach(function(id2){ var el=document.getElementById(id2); if(el) el.innerHTML=cols.map(function(c){ return '<option value="'+xe(c)+'">'+xe(c)+'</option>'; }).join(''); });
+  };
+  var shEl=document.getElementById('ex-sheet'); if(shEl) shEl.addEventListener('change',updCols);
+  updCols();
+  nd('ex-chart','Configure controls above and click Generate Chart.');
+  var goBtn=document.getElementById('ex-go'); if(goBtn) goBtn.addEventListener('click',runExplorer);
+}
+
+function runExplorer() {
+  var sheet=document.getElementById('ex-sheet')?document.getElementById('ex-sheet').value:'';
+  var type=document.getElementById('ex-type')?document.getElementById('ex-type').value:'bar';
+  var xKey=document.getElementById('ex-x')?document.getElementById('ex-x').value:'';
+  var yKey=document.getElementById('ex-y')?document.getElementById('ex-y').value:'';
+  var agg=document.getElementById('ex-agg')?document.getElementById('ex-agg').value:'avg';
+  var data=DB.sheets[sheet]; if(!data||!data.length){ toast('No data in selected sheet','error'); return; }
+  var sample=data.slice(0,5000);
+  kc('ex-chart'); sc('ex-chart');
+  var titleEl=document.getElementById('ex-chart')?document.getElementById('ex-chart').closest('.cc'):null;
+  if (titleEl){ var ct=titleEl.querySelector('.ct'); if(ct) ct.textContent=agg.toUpperCase()+'('+yKey+') by '+xKey; }
+  try {
+    if (type==='histogram') { var vals=eNums(sample,yKey); mkHist('ex-chart',vals,{xLabel:yKey}); }
+    else if (type==='scatter') { var pts=sample.map(function(r){ return {x:pN(r[xKey]),y:pN(r[yKey])}; }).filter(function(p){ return p.x!=null&&p.y!=null&&isFinite(p.x)&&isFinite(p.y); }).slice(0,500); mkScatter('ex-chart',[{label:xKey+' vs '+yKey,data:pts,color:'#00E5FF'}],{xTitle:xKey,yTitle:yKey}); }
+    else {
+      var grp=gBy(sample,xKey);
+      var labels=Object.keys(grp).slice(0,30);
+      var aggFn=function(rows){ var nums=rows.map(function(r){ return pN(r[yKey]); }).filter(function(v){ return v!=null; }); if(!nums.length) return null; switch(agg){ case'sum':return nums.reduce(function(a,b){return a+b;},0); case'count':return rows.length; case'max':return Math.max.apply(null,nums); case'min':return Math.min.apply(null,nums); default:return nums.reduce(function(a,b){return a+b;},0)/nums.length; } };
+      var vals2=labels.map(function(k){ return aggFn(grp[k]); });
+      if (type==='doughnut') mkDoughnut('ex-chart',labels,vals2);
+      else if (type==='radar') mkRadar('ex-chart',labels.slice(0,8),[{label:yKey,data:vals2.slice(0,8)}]);
+      else if (type==='hbar') mkHBar('ex-chart',labels,vals2,{label:yKey,xTitle:agg+'('+yKey+')'});
+      else if (type==='line') mkLine('ex-chart',labels,[{label:yKey,data:vals2,color:'#00E5FF'}]);
+      else if (type==='area') mkArea('ex-chart',labels,[{label:yKey,data:vals2,color:'#00E5FF'}]);
+      else mkBar('ex-chart',labels,[{label:yKey,data:vals2,radius:4}]);
+      var tblData=labels.map(function(k){ var obj={}; obj[xKey]=k; obj[agg+'('+yKey+')']=Math.round((aggFn(grp[k])||0)*1000)/1000; return obj; });
+      var ew=document.getElementById('ex-tbl-wrap'); if(ew){ ew.innerHTML='<div id="ex-tbl"></div>'; mkTbl('ex-tbl',tblData,[xKey,agg+'('+yKey+')'],{pageSize:15}); }
+    }
+  } catch(err) { toast('Chart error: '+err.message,'error'); nd('ex-chart',err.message); }
+}
+
+// ── LOAD WORKBOOK FROM FILE INTO DASHBOARD ───────────────────────
+function loadWBFromFile(wb, filename) {
+  // Clear all caches so analysis functions re-compute with real data
+  Object.keys(CACHE).forEach(function(k){ delete CACHE[k]; });
+  // Clear old sheets
+  Object.keys(DB.sheets).forEach(function(k){ delete DB.sheets[k]; });
+  Object.keys(DB.meta).forEach(function(k){ delete DB.meta[k]; });
+
+  wb.SheetNames.forEach(function(name){
+    var ws=wb.Sheets[name];
+    var raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false,dateNF:'yyyy-mm-dd'});
+    DB.sheets[name]=raw;
+    DB.meta[name]={rows:raw.length,cols:raw.length>0?Object.keys(raw[0]).length:0,columns:raw.length>0?Object.keys(raw[0]):[]};
+  });
+  DB.loaded=true;
+  DB.isDemo=false;
+  DB.filename=filename;
+
+  // Update status bar
+  var sdot=document.getElementById('sdot'), sstat=document.getElementById('sstat');
+  if(sdot) sdot.className='sdot ready';
+  if(sstat) sstat.textContent=wb.SheetNames.length+' sheets loaded';
+
+  // Refresh filters with real data
+  popFilters();
+  toast('✓ "'+filename+'" loaded — all dashboards updated!','success',5000);
+}
+
+// ── PAGE: UPLOAD & ANALYZE ───────────────────────────────────────
+var UPL_DATA=null, UPL_PROFILE=null;
+function renderUpload(pg) {
+  var hasRealData=!DB.isDemo&&DB.filename;
+  pg.innerHTML=heroH('Upload & Analyze','Drop your data. Power every dashboard with it.')+
+  // ─── Hero upload panel ───────────────────────────────────────
+  '<div class="cc p20 mb20">'+
+  '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:12px 16px;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.18);border-radius:10px">'+
+  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>'+
+  '<div><div style="font-size:13px;font-weight:600;color:#00E5FF">Upload your Olist workbook to power all analytics pages</div>'+
+  '<div style="font-size:11px;color:#64748b;margin-top:2px">Upload an <strong style="color:#fff">.xlsx / .xls</strong> with multiple sheets (order_master, monthly, state_risk, etc.) — it replaces demo data across every page instantly.</div></div></div>'+
+  (hasRealData?'<div style="padding:10px 14px;background:rgba(45,212,191,0.08);border:1px solid rgba(45,212,191,0.25);border-radius:8px;margin-bottom:16px;font-size:12px;color:#2DD4BF">✓ Currently using: <strong>'+xe(DB.filename)+'</strong> ('+Object.keys(DB.sheets).length+' sheets). Upload a new file below to replace it.</div>':'')+
+  '<div style="font-size:12px;color:#64748b;margin-bottom:14px">🔒 All processing is local — nothing leaves your browser.</div>'+
+  '<div class="uz" id="uz" role="button" tabindex="0">'+
+  '<div style="margin-bottom:16px"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00E5FF" stroke-width="1.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>'+
+  '<div class="utit">Drop your file here</div>'+
+  '<div class="usub">or click to browse</div>'+
+  '<div class="flex g8" style="justify-content:center;flex-wrap:wrap"><span class="bdg bc">.xlsx</span><span class="bdg bp">.xls</span><span class="bdg bg2">.csv</span></div>'+
+  '<input type="file" id="uinput" accept=".xlsx,.xls,.csv" style="display:none"/>'+
+  '</div></div>'+
+  '<div id="upl-results"></div>';
+
+  var uz=document.getElementById('uz'), ui=document.getElementById('uinput');
+  uz.addEventListener('click', function(){ ui.click(); });
+  uz.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' ') ui.click(); });
+  uz.addEventListener('dragover', function(e){ e.preventDefault(); uz.classList.add('drag'); });
+  uz.addEventListener('dragleave', function(){ uz.classList.remove('drag'); });
+  uz.addEventListener('drop', function(e){ e.preventDefault(); uz.classList.remove('drag'); var f=e.dataTransfer.files[0]; if(f) procUpload(f); });
+  ui.addEventListener('change', function(e){ var f=e.target.files[0]; if(f) procUpload(f); });
+}
+
+function procUpload(file) {
+  var ext=file.name.split('.').pop().toLowerCase();
+  var res=document.getElementById('upl-results');
+  if (['xlsx','xls','csv'].indexOf(ext)<0){ toast('Unsupported file type. Use .xlsx .xls .csv','error'); return; }
+  res.innerHTML='<div class="cc p20"><div class="flex aic g12"><div class="spin" style="width:28px;height:28px;border-width:2px"></div><div><div style="font-weight:600">'+xe(file.name)+'</div><div style="font-size:12px;color:#64748b">Reading '+Math.round(file.size/1024)+' KB…</div></div></div></div>';
+  var reader=new FileReader();
+  if (ext==='csv') {
+    reader.onload=function(e2){
+      try {
+        var r=Papa.parse(e2.target.result,{header:true,skipEmptyLines:true,dynamicTyping:false});
+        if (!r.data||!r.data.length){ res.innerHTML='<div class="nd"><div class="nd-t">Empty CSV</div>No records found.</div>'; return; }
+        showUplAnalysis(res,r.data,file.name);
+      } catch(err){ res.innerHTML='<div class="nd"><div class="nd-t">CSV Error</div>'+xe(err.message)+'</div>'; }
+    };
+    reader.readAsText(file);
+  } else {
+    reader.onload=function(e2){
+      try {
+        var wb=XLSX.read(e2.target.result,{type:'array',cellDates:true});
+        if (wb.SheetNames.length>1) {
+          // Multi-sheet workbook: show dashboard load option + sheet explorer
+          showWBOptions(res,wb,file.name);
+        } else {
+          var ws=wb.Sheets[wb.SheetNames[0]];
+          var data=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false,dateNF:'yyyy-mm-dd'});
+          if (!data.length){ res.innerHTML='<div class="nd"><div class="nd-t">Empty Sheet</div>No records found.</div>'; return; }
+          showUplAnalysis(res,data,wb.SheetNames[0]+' ('+file.name+')');
+        }
+      } catch(err){ res.innerHTML='<div class="nd"><div class="nd-t">Excel Error</div>'+xe(err.message)+'</div>'; }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+// ── Show options for multi-sheet workbook ────────────────────────
+function showWBOptions(res, wb, filename) {
+  var totalRows=wb.SheetNames.reduce(function(sum,n){
+    var ws=wb.Sheets[n]; var raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false});
+    return sum+raw.length;
+  },0);
+
+  res.innerHTML=
+  // ── BIG CTA: Load as Dashboard ─────────────────────────────
+  '<div style="background:linear-gradient(135deg,rgba(0,229,255,0.12),rgba(139,92,246,0.12));border:1.5px solid rgba(0,229,255,0.35);border-radius:14px;padding:28px;margin-bottom:20px;text-align:center">'+
+  '<div style="font-size:28px;margin-bottom:12px">🚀</div>'+
+  '<div style="font-family:\'Instrument Serif\',serif;font-size:22px;margin-bottom:8px">Load as Dashboard Workbook</div>'+
+  '<div style="font-size:13px;color:#94A3B8;margin-bottom:6px"><strong style="color:#fff">'+xe(filename)+'</strong> — '+wb.SheetNames.length+' sheets · ~'+fN(totalRows)+' total rows</div>'+
+  '<div style="font-size:12px;color:#64748b;margin-bottom:20px">This will replace demo data on <strong style="color:#fff">every analytics page</strong> — Command Center, Customer Experience, Delivery, Geographic, Category, Seller, Payment, and Risk Intelligence — all powered by your real data.</div>'+
+  '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">'+
+  wb.SheetNames.map(function(n){ return '<span style="background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.2);border-radius:20px;padding:3px 11px;font-size:11px;color:var(--a)">'+xe(n)+'</span>'; }).join('')+
+  '</div>'+
+  '<button onclick="doLoadWBDashboard()" style="background:linear-gradient(90deg,#00E5FF,#8B5CF6);border:none;color:#000;font-weight:700;font-size:15px;padding:12px 36px;border-radius:8px;cursor:pointer;font-family:inherit;letter-spacing:.5px;transition:opacity .2s" onmouseover="this.style.opacity=\'0.88\'" onmouseout="this.style.opacity=\'1\'">⚡ USE AS DASHBOARD DATA</button>'+
+  '<div style="margin-top:12px;font-size:11px;color:#475569">or explore individual sheets below ↓</div>'+
+  '</div>'+
+  // ── Sheet selector ──────────────────────────────────────────
+  '<div class="cc p20 mb14"><div style="font-size:13px;font-weight:600;margin-bottom:14px;color:#94A3B8">Explore individual sheet:</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">'+
+  wb.SheetNames.map(function(n){
+    var ws=wb.Sheets[n]; var raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false});
+    return '<button onclick="loadUplSheet(this)" data-name="'+xe(n)+'" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:14px;text-align:left;cursor:pointer;color:#fff;font-family:inherit;width:100%;transition:all .2s" onmouseover="this.style.borderColor=\'rgba(0,229,255,0.35)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,0.1)\'"><div style="font-weight:600;font-size:13px;margin-bottom:4px">'+xe(n)+'</div><div style="font-size:11px;color:#64748b">'+fN(raw.length)+' rows · '+(raw.length>0?Object.keys(raw[0]).length:0)+' cols</div></button>';
+  }).join('')+
+  '</div></div>'+
+  '<div id="sht-area"></div>';
+
+  window._uplWB=wb;
+  window._uplFilename=filename;
+}
+
+window.doLoadWBDashboard=function(){
+  var wb=window._uplWB, filename=window._uplFilename;
+  if(!wb){ toast('No workbook in memory','error'); return; }
+  loadWBFromFile(wb,filename);
+  // Navigate to Command Center with a short delay so toast shows first
+  setTimeout(function(){ navigate('cmd'); }, 400);
+};
+
+function showSheetSel(res, wb, filename) {
+  // Fallback for single-sheet path — just show sheet explorer
+  res.innerHTML='<div class="cc p20 mb20"><div style="font-weight:600;margin-bottom:14px">'+xe(filename)+' — Select a worksheet:</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px">'+
+  wb.SheetNames.map(function(n){ var ws=wb.Sheets[n]; var raw=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false}); return '<button onclick="loadUplSheet(this)" data-name="'+xe(n)+'" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:14px;text-align:left;cursor:pointer;color:#fff;font-family:inherit;width:100%;transition:all .2s"><div style="font-weight:600;font-size:13px;margin-bottom:4px">'+xe(n)+'</div><div style="font-size:11px;color:#64748b">'+fN(raw.length)+' rows · '+(raw.length>0?Object.keys(raw[0]).length:0)+' cols</div></button>'; }).join('')+
+  '</div></div><div id="sht-area"></div>';
+  window._uplWB=wb;
+  window._uplFilename=filename;
+}
+window.loadUplSheet=function(btn){
+  var n=btn.dataset.name; var wb=window._uplWB; if(!wb) return;
+  var ws=wb.Sheets[n]; var data=XLSX.utils.sheet_to_json(ws,{defval:null,raw:false,dateNF:'yyyy-mm-dd'});
+  if (!data.length){ toast('Sheet is empty','error'); return; }
+  var area=document.getElementById('sht-area'); if(area) showUplAnalysis(area,data,n);
+};
+
+function profData(data) {
+  var n=data.length; if(!n) return null;
+  var cols=Object.keys(data[0]);
+  var ks=new Set(); var dups=0;
+  data.forEach(function(r){ var k=cols.slice(0,5).map(function(c){ return String(r[c]||''); }).join('|'); if(ks.has(k))dups++; else ks.add(k); });
+  var totMiss=0;
+  var columns=cols.map(function(col){
+    var vals=data.map(function(r){ return r[col]; });
+    var nn=vals.filter(function(v){ return v!=null&&v!==''; });
+    var miss=n-nn.length; totMiss+=miss;
+    var type=detType(nn.slice(0,200));
+    var stats=null;
+    if (type==='numeric'){ var nums=nn.map(function(v){ return pN(v); }).filter(function(v){ return v!=null; }); stats=descN(nums); }
+    var freq={};
+    nn.slice(0,500).forEach(function(v){ var k=String(v); freq[k]=(freq[k]||0)+1; });
+    var topValues=Object.entries(freq).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10).map(function(kv){ return {value:kv[0],count:kv[1],pct:Math.round(kv[1]/n*1000)/10}; });
+    return {name:col,type:type,missingCount:miss,missingPct:Math.round(miss/n*1000)/10,uniqueCount:new Set(nn.map(function(v){ return String(v); })).size,stats:stats,topValues:topValues};
+  });
+  return {rows:n,cols:cols.length,duplicates:dups,duplicatePct:Math.round(dups/n*1000)/10,totalMissing:totMiss,missingPct:Math.round(totMiss/(n*cols.length)*1000)/10,numericCols:columns.filter(function(c){ return c.type==='numeric'; }).length,categoricalCols:columns.filter(function(c){ return c.type==='categorical'; }).length,columns:columns};
+}
+function detType(vals){ if(!vals.length)return'empty'; var nr=vals.filter(function(v){ var s=String(v).replace(/[,\s%R$]/g,''); return!isNaN(parseFloat(s))&&isFinite(parseFloat(s)); }).length/vals.length; if(nr>.8)return'numeric'; var ur=new Set(vals.map(function(v){ return String(v); })).size/vals.length; if(ur<.05&&vals.length>20)return'categorical'; if(ur>.95&&vals.length>10)return'identifier'; return'text'; }
+function descN(nums){ if(!nums.length)return null; var s=nums.slice().sort(function(a,b){ return a-b; }),n=s.length,sum=s.reduce(function(a,b){return a+b;},0),mean=sum/n,q1=s[Math.floor(n*.25)],q3=s[Math.floor(n*.75)],med=n%2?s[Math.floor(n/2)]:(s[n/2-1]+s[n/2])/2,iqr=q3-q1,std=Math.sqrt(s.reduce(function(a,v){ return a+Math.pow(v-mean,2); },0)/n); return {count:n,sum:Math.round(sum*100)/100,mean:Math.round(mean*10000)/10000,median:Math.round(med*10000)/10000,min:Math.round(s[0]*10000)/10000,max:Math.round(s[n-1]*10000)/10000,std:Math.round(std*10000)/10000,q1:Math.round(q1*10000)/10000,q3:Math.round(q3*10000)/10000,iqr:Math.round(iqr*10000)/10000}; }
+function qScore(p){ if(!p)return 0; var s=100; s-=Math.min(p.duplicatePct*2,30)+Math.min(p.missingPct*3,40); return Math.max(0,Math.round(s)); }
+function qLabel(s){ if(s>=85)return{label:'Excellent',color:'#2DD4BF'}; if(s>=70)return{label:'Good',color:'#00E5FF'}; if(s>=50)return{label:'Fair',color:'#F59E0B'}; return{label:'Poor',color:'#FF4D6D'}; }
+
+function showUplAnalysis(container, data, name) {
+  UPL_DATA=data; var profile=profData(data); UPL_PROFILE=profile;
+  var score=qScore(profile); var ql=qLabel(score);
+  // Show "load as dashboard" banner if a multi-sheet workbook is in memory
+  var wbBanner='';
+  if (window._uplWB && window._uplWB.SheetNames.length>1 && !(!DB.isDemo&&DB.filename===window._uplFilename)) {
+    wbBanner='<div style="margin-bottom:14px;padding:12px 16px;background:rgba(0,229,255,0.08);border:1px solid rgba(0,229,255,0.28);border-radius:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">'+
+    '<div style="font-size:13px;color:#00E5FF">⚡ <strong>'+xe(window._uplFilename)+'</strong> has '+window._uplWB.SheetNames.length+' sheets — power all dashboard pages with it.</div>'+
+    '<button onclick="doLoadWBDashboard()" style="background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.4);color:#00E5FF;border-radius:6px;padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">⚡ USE AS DASHBOARD</button>'+
+    '</div>';
+  }
+  container.innerHTML=wbBanner+
+  '<div class="cc p20 mb14"><div class="flex jb aic fw mb14 g8"><div><div style="font-size:16px;font-weight:600">'+xe(name)+'</div><div style="font-size:12px;color:#64748b">Uploaded Dataset</div></div><div class="tac"><div style="font-size:26px;font-weight:700;color:'+ql.color+'">'+score+'</div><div style="font-size:11px;color:#64748b">Quality · '+ql.label+'</div></div></div>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px">'+
+  [['Rows',fN(profile.rows),'#00E5FF'],['Columns',profile.cols,'#8B5CF6'],['Duplicates',fN(profile.duplicates),'#F59E0B'],['Missing %',profile.missingPct+'%','#FF4D6D'],['Numeric',profile.numericCols,'#2DD4BF'],['Categorical',profile.categoricalCols,'#94A3B8']].map(function(m){ return '<div style="text-align:center;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;border:1px solid rgba(255,255,255,0.07)"><div style="font-size:18px;font-weight:700;color:'+m[2]+'">'+m[1]+'</div><div style="font-size:10px;color:#64748b;margin-top:3px">'+m[0]+'</div></div>'; }).join('')+
+  '</div></div>'+
+  '<div class="tabs mb14" id="upl-tabs">'+['Profile','Statistics','Charts','Correlation','Outliers','Insights','Table'].map(function(t,i){ return '<button class="tab'+(i===0?' on':'')+'" data-tab="'+t+'">'+t+'</button>'; }).join('')+'</div>'+
+  '<div id="upl-tab-content"></div>';
+  container.querySelectorAll('#upl-tabs .tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      container.querySelectorAll('#upl-tabs .tab').forEach(function(b){ b.classList.remove('on'); });
+      btn.classList.add('on');
+      renderUplTab(btn.dataset.tab, UPL_DATA, UPL_PROFILE);
+    });
+  });
+  renderUplTab('Profile', data, profile);
+}
+
+function renderUplTab(tab, data, profile) {
+  var el=document.getElementById('upl-tab-content'); if(!el) return;
+  Object.keys(R).filter(function(k){ return k.indexOf('up-')===0; }).forEach(kc);
+  var sample=data.slice(0,500);
+  if (tab==='Profile') el.innerHTML=buildProfHTML(profile);
+  else if (tab==='Statistics') el.innerHTML=buildStatsHTML(profile);
+  else if (tab==='Charts') { el.innerHTML=buildAutoChartsHTML(profile); setTimeout(function(){ drawAutoCharts(sample,profile); },80); }
+  else if (tab==='Correlation') { el.innerHTML='<div id="up-corr-wrap"></div>'; setTimeout(function(){ buildCorrMatrix(sample,profile); },80); }
+  else if (tab==='Outliers') el.innerHTML=buildOutliersHTML(data,profile);
+  else if (tab==='Insights') { el.innerHTML='<div class="ip"><div class="ip-t">Analytical Insights</div><div id="up-ins"></div></div>'; renderUplIns(document.getElementById('up-ins'),data,profile); }
+  else if (tab==='Table') { el.innerHTML='<div id="up-tbl"></div>'; mkTbl('up-tbl',data,profile.columns.slice(0,15).map(function(c){ return c.name; }),{pageSize:20}); }
+}
+
+function buildProfHTML(profile){ return '<div class="tc"><div class="ttb"><span style="font-size:13px;font-weight:600">Column Profiles</span><span class="ti">'+profile.cols+' columns</span></div><div class="tw"><table class="dt"><thead><tr><th>Column</th><th>Type</th><th>Missing %</th><th>Unique</th><th>Top Value</th></tr></thead><tbody>'+profile.columns.map(function(col){ var tb={'numeric':'bc','date':'bg2','categorical':'bp','identifier':'bw','text':'bw','empty':'br2'}[col.type]||'bw'; return '<tr><td style="font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis">'+xe(col.name)+'</td><td><span class="bdg '+tb+'">'+col.type+'</span></td><td><div class="flex aic g8"><div style="width:50px;height:5px;background:rgba(255,255,255,0.08);border-radius:3px"><div style="width:'+Math.min(col.missingPct,100)+'%;height:100%;background:'+(col.missingPct>30?'#FF4D6D':col.missingPct>10?'#F59E0B':'#2DD4BF')+';border-radius:3px"></div></div>'+col.missingPct+'%</div></td><td>'+fN(col.uniqueCount)+'</td><td style="color:#94a3b8;max-width:140px;overflow:hidden;text-overflow:ellipsis">'+xe(col.topValues[0]?col.topValues[0].value:'—')+'</td></tr>'; }).join('')+'</tbody></table></div></div>'; }
+function buildStatsHTML(profile){ var nums=profile.columns.filter(function(c){ return c.type==='numeric'&&c.stats; }); if(!nums.length)return'<div class="nd"><div class="nd-t">No Numeric Columns</div>This dataset has no numeric columns to analyze.</div>'; return '<div class="tc"><div class="ttb"><span style="font-size:13px;font-weight:600">Descriptive Statistics</span></div><div class="tw"><table class="dt"><thead><tr><th>Column</th><th>Count</th><th>Mean</th><th>Median</th><th>Std Dev</th><th>Min</th><th>Max</th><th>Q1</th><th>Q3</th><th>IQR</th></tr></thead><tbody>'+nums.map(function(col){ var s=col.stats; return '<tr><td style="font-weight:600">'+xe(col.name)+'</td><td>'+fN(s.count)+'</td><td>'+s.mean+'</td><td>'+s.median+'</td><td>'+s.std+'</td><td>'+s.min+'</td><td>'+s.max+'</td><td>'+s.q1+'</td><td>'+s.q3+'</td><td>'+s.iqr+'</td></tr>'; }).join('')+'</tbody></table></div></div>'; }
+function buildAutoChartsHTML(profile){ var nc=profile.columns.filter(function(c){ return c.type==='numeric'; }); var cc=profile.columns.filter(function(c){ return c.type==='categorical'; }); var charts=[]; if(cc.length&&nc.length)charts.push({id:'up-c1',title:cc[0].name+' vs '+nc[0].name,type:'hbar'}); if(nc.length>=1)charts.push({id:'up-c2',title:nc[0].name+' Distribution',type:'histogram'}); if(nc.length>=2)charts.push({id:'up-c3',title:nc[0].name+' vs '+nc[1].name,type:'scatter'}); if(cc.length)charts.push({id:'up-c4',title:cc[0].name+' Composition',type:'doughnut'}); if(!charts.length)return'<div class="nd"><div class="nd-t">No Chart Recommendations</div>Need numeric or categorical columns.</div>'; return charts.map(function(c){ return cBox(c.id,c.title,c.type,'Uploaded Dataset',260); }).join(''); }
+function drawAutoCharts(sample,profile){
+  var nc=profile.columns.filter(function(c){ return c.type==='numeric'; }).map(function(c){ return c.name; });
+  var cc2=profile.columns.filter(function(c){ return c.type==='categorical'; }).map(function(c){ return c.name; });
+  if(cc2.length&&nc.length){ var g=gBy(sample,cc2[0]); var lbls=Object.keys(g).slice(0,20); var vals=lbls.map(function(k){ var ns=g[k].map(function(r){ return pN(r[nc[0]]); }).filter(function(v){ return v!=null; }); return ns.length?ns.reduce(function(a,b){return a+b;},0)/ns.length:null; }); mkHBar('up-c1',lbls,vals,{label:'Avg '+nc[0]}); }
+  if(nc.length>=1){ mkHist('up-c2',eNums(sample,nc[0]),{xLabel:nc[0]}); }
+  if(nc.length>=2){ var pts2=sample.map(function(r){ return {x:pN(r[nc[0]]),y:pN(r[nc[1]])}; }).filter(function(p){ return p.x!=null&&p.y!=null; }).slice(0,300); mkScatter('up-c3',[{label:nc[0]+' vs '+nc[1],data:pts2,color:'#00E5FF'}],{xTitle:nc[0],yTitle:nc[1]}); }
+  if(cc2.length){ var f={}; sample.forEach(function(r){ var k=String(r[cc2[0]]||''); f[k]=(f[k]||0)+1; }); var top=Object.entries(f).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10); mkDoughnut('up-c4',top.map(function(e){ return e[0]; }),top.map(function(e){ return e[1]; })); }
+}
+function buildCorrMatrix(sample, profile){
+  var w=document.getElementById('up-corr-wrap'); if(!w) return;
+  var nc=profile.columns.filter(function(c){ return c.type==='numeric'; }).slice(0,12).map(function(c){ return c.name; });
+  if(nc.length<2){ w.innerHTML='<div class="nd"><div class="nd-t">Need 2+ Numeric Columns</div>This dataset has only '+nc.length+' numeric column(s).</div>'; return; }
+  var arrs={}; nc.forEach(function(c){ arrs[c]=eNums(sample,c); });
+  var getR=function(c1,c2){ var n=Math.min(arrs[c1].length,arrs[c2].length); return pearson(arrs[c1].slice(0,n),arrs[c2].slice(0,n)).r; };
+  var getColor=function(r){ if(r==null)return'rgba(255,255,255,.04)'; var a=0.1+Math.abs(r)*0.8; return r>0?'rgba(0,229,255,'+a.toFixed(2)+')':'rgba(255,77,109,'+a.toFixed(2)+')'; };
+  var html='<div class="cc p18 mb14"><div class="ct mb8">Pearson Correlation Matrix</div><div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:11px"><thead><tr><th style="padding:5px 10px;color:#64748b;text-align:left"></th>'+nc.map(function(c){ return '<th style="padding:5px 8px;color:#64748b;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+xe(c)+'">'+xe(c.slice(0,10))+'</th>'; }).join('')+'</tr></thead><tbody>';
+  nc.forEach(function(row){ html+='<tr><th style="padding:5px 10px;color:#94A3B8;text-align:right;font-weight:500;white-space:nowrap;font-size:11px">'+xe(row.slice(0,12))+'</th>'; nc.forEach(function(col){ var r=getR(row,col); var bg=getColor(r); var txt=r!=null?r.toFixed(2):'—'; html+='<td style="width:50px;height:34px;text-align:center;background:'+bg+';font-weight:600;color:#fff;border:1px solid rgba(255,255,255,.04)" title="'+xe(row)+'×'+xe(col)+': '+txt+'">'+txt+'</td>'; }); html+='</tr>'; });
+  html+='</tbody></table></div><div style="margin-top:8px;font-size:11px;color:#64748b;font-style:italic">⚠ Correlation ≠ causation. Blue = positive, red = negative.</div></div>';
+  w.innerHTML=html;
+}
+function buildOutliersHTML(data, profile){ var results=[]; profile.columns.filter(function(c){ return c.type==='numeric'; }).forEach(function(col){ var vals=eNums(data,col.name); if(vals.length<4)return; var s=vals.slice().sort(function(a,b){ return a-b; }),n=s.length,q1=s[Math.floor(n*.25)],q3=s[Math.floor(n*.75)],iqr=q3-q1,lower=q1-1.5*iqr,upper=q3+1.5*iqr; var oc=s.filter(function(v){ return v<lower||v>upper; }).length; var pct=Math.round(oc/vals.length*1000)/10; if(oc>0)results.push({col:col.name,total:vals.length,outlierCount:oc,pct:pct,lower:Math.round(lower*100)/100,upper:Math.round(upper*100)/100}); }); if(!results.length)return'<div class="ip"><div class="ii p"><div class="ii-w">✓ No Significant Outliers</div>IQR analysis found no extreme values in numeric columns.</div></div>'; return '<div class="tc"><div class="ttb"><span style="font-size:13px;font-weight:600">Outlier Detection (IQR Method)</span></div><div class="tw"><table class="dt"><thead><tr><th>Column</th><th>Total</th><th>Outliers</th><th>Outlier %</th><th>Lower Bound</th><th>Upper Bound</th></tr></thead><tbody>'+results.map(function(o){ return '<tr><td style="font-weight:600">'+xe(o.col)+'</td><td>'+fN(o.total)+'</td><td>'+fN(o.outlierCount)+'</td><td><span class="rb '+(o.pct>10?'r-c':o.pct>5?'r-h':'r-m')+'">'+o.pct+'%</span></td><td>'+o.lower+'</td><td>'+o.upper+'</td></tr>'; }).join('')+'</tbody></table></div></div>'; }
+function renderUplIns(el, data, profile){ if(!el) return; var ins=[]; if(profile.duplicates>0)ins.push({t:'w',w:fP(profile.duplicatePct)+' Duplicate Rows',y:fN(profile.duplicates)+' rows appear to be duplicates.',e:fN(profile.duplicates)+' of '+fN(profile.rows)+' rows'}); profile.columns.filter(function(c){ return c.missingPct>15; }).forEach(function(col){ ins.push({t:'w',w:'High Missing: "'+col.name+'"',y:col.missingPct+'% missing values may affect analysis.',e:fN(col.missingCount)+' missing of '+fN(profile.rows)+' rows'}); }); profile.columns.filter(function(c){ return c.type==='categorical'&&c.topValues.length&&c.topValues[0].pct>50; }).forEach(function(col){ ins.push({t:'',w:'Dominant Category in "'+col.name+'"',y:'One value represents '+col.topValues[0].pct+'% of records.',e:'"'+col.topValues[0].value+'" = '+col.topValues[0].pct+'%'}); }); if(!ins.length)ins.push({t:'p',w:'Dataset Looks Clean',y:'No major data quality issues detected.',e:''}); el.innerHTML=ins.map(function(i){ return '<div class="ii '+i.t+'"><div class="ii-w">'+xe(i.w)+'</div><div>'+xe(i.y)+'</div>'+(i.e?'<div class="ii-e">'+xe(i.e)+'</div>':'')+'</div>'; }).join(''); }
+</script>
+
+<script>
+// ── PAGE: ACTION CENTER ──────────────────────────────────────────
+function renderAction(pg) {
+  var kpis=getKPIs(), states=getStates().slice(0,3), cats=getCats().slice(0,3), sellers=getSellers().filter(function(s){ return s.late_rate>20; }).slice(0,3), corr=getDelivCorr();
+  function card(pri, cls, prob, ev, act){ return '<div class="acard '+cls+'"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:'+(cls==='c'?'#FF4D6D':cls==='w'?'#F59E0B':'#2DD4BF')+';margin-bottom:8px">● '+pri+' PRIORITY</div><div style="font-family:\'Instrument Serif\',serif;font-size:18px;margin-bottom:10px">'+xe(prob)+'</div><div style="font-size:12px;color:#94A3B8;line-height:1.6;margin-bottom:12px">'+xe(ev)+'</div><div style="font-size:13px;color:#93c5fd;padding:10px 14px;background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.13);border-radius:8px;line-height:1.55"><strong>→ Action:</strong> '+xe(act)+'</div></div>'; }
+  var cards='';
+  if (kpis.lateRate>5) cards+=card(kpis.lateRate>10?'HIGH':'MEDIUM',kpis.lateRate>10?'c':'w','Late Delivery Rate Requires Attention','Late rate: '+fP(kpis.lateRate)+' | Late orders: '+fN(kpis.lateOrders)+' | Analyzed: '+fN(kpis.analyzedOrders),'Investigate top-contributing states and categories. Prioritize operational improvements in logistics partners.');
+  if (states.length&&states[0].late_rate>8) cards+=card('HIGH','c','Geographic Risk: '+states[0].state,'Late rate: '+fP(states[0].late_rate)+' | Late orders: '+fN(states[0].late_orders||0)+' | Total: '+fN(states[0].orders),'Prioritize logistics investigation and carrier performance review for top-risk states. Consider SLA renegotiation.');
+  if (cats.length&&cats[0].late_rate>8) cards+=card('MEDIUM','w','Category Risk: "'+cats[0].category.slice(0,40)+'"','Late rate: '+fP(cats[0].late_rate)+' | Orders: '+fN(cats[0].orders)+' | Avg late days: '+(cats[0].avg_late_days||'N/A'),'Apply category-specific SLA targets. Review fulfillment processes for high-risk categories.');
+  if (sellers.length) cards+=card('MEDIUM','w','High-Risk Sellers Driving Late-Order Concentration',sellers.length+'+ sellers with >20% late rate. Top offender: '+sellers[0].seller_id+' at '+fP(sellers[0].late_rate),'Target seller-level intervention. Implement real-time SLA monitoring and seller scorecards.');
+  if (corr.r!=null&&corr.r<-0.15) cards+=card('MEDIUM','w','Delivery Deviation Negatively Associated with Review Score','Pearson r = '+corr.r+' | '+fmtP(corr.p)+' | n = '+fN(corr.n),'Focus on reducing 8+ day late deliveries — most strongly associated with lowest review scores.');
+  if (!cards) cards=card('INFO','p','Marketplace Performance On Track','No critical issues detected in current dataset.','Continue monitoring KPIs. Load real workbook for deeper analysis.');
+  pg.innerHTML=heroH('Action Center','Where should Olist act first?')+demoBadge()+cards+
+  '<div class="ip mt8"><div class="ip-t">Methodology Note</div><div class="ii"><div class="ii-w">Evidence-Based Recommendations</div>All recommendations derived from statistical patterns in the dataset. Correlation ≠ causation. Business decisions should incorporate additional operational context and domain expertise.</div></div>';
+}
+
+// ── PRESENTATION MODE ────────────────────────────────────────────
+function showPres() {
+  var o=document.getElementById('pso'), c=document.getElementById('psc'); if(!o||!c) return;
+  var kpis=getKPIs(), states=getStates().slice(0,3), cats=getCats().slice(0,3), corr=getDelivCorr();
+  c.innerHTML='<div style="max-width:900px;margin:0 auto">'+
+  '<div style="text-align:center;margin-bottom:40px"><div style="font-family:\'Instrument Serif\',serif;font-size:40px;margin-bottom:10px">OLIST MARKETPLACE INTELLIGENCE</div><div style="font-size:16px;color:#94A3B8">From Raw Data to Business Decisions</div>'+(DB.isDemo?'<div style="font-size:12px;color:var(--a);margin-top:8px">● Demo Data Mode</div>':'')+'</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px">'+
+  [['Total Orders',fN(kpis.totalOrders),'#00E5FF'],['Late Rate',fP(kpis.lateRate),'#FF4D6D'],['Avg Review',(kpis.avgReview!=null?kpis.avgReview:'N/A')+'★','#2DD4BF'],['Product Value',fBRL(kpis.productValue),'#8B5CF6']].map(function(m){ return '<div style="text-align:center;padding:20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px"><div style="font-size:26px;font-weight:700;color:'+m[2]+'">'+xe(m[1])+'</div><div style="font-size:11px;color:#64748b;margin-top:6px;text-transform:uppercase;letter-spacing:1px">'+m[0]+'</div></div>'; }).join('')+
+  '</div>'+
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">'+
+  '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:20px"><div style="font-family:\'Instrument Serif\',serif;font-size:18px;margin-bottom:14px;color:#00E5FF">Top Risk States</div>'+states.map(function(s,i){ return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span>'+(i+1)+'. '+xe(s.state||'?')+'</span><span style="color:'+rC(s.late_rate||0)+';font-weight:700">'+fP(s.late_rate)+'</span></div>'; }).join('')+'</div>'+
+  '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:12px;padding:20px"><div style="font-family:\'Instrument Serif\',serif;font-size:18px;margin-bottom:14px;color:#8B5CF6">Top Risk Categories</div>'+cats.map(function(c2,i){ return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)"><span style="font-size:12px">'+(i+1)+'. '+xe((c2.category||'?').slice(0,28))+'</span><span style="color:'+rC(c2.late_rate||0)+';font-weight:700">'+fP(c2.late_rate)+'</span></div>'; }).join('')+'</div>'+
+  '</div>'+
+  (corr.r!=null?'<div style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:12px;padding:20px;margin-bottom:24px;text-align:center"><div style="font-size:14px;color:#94A3B8;margin-bottom:8px">Delivery–Satisfaction Correlation</div><div style="font-size:32px;font-weight:700;color:#00E5FF">r = '+corr.r+'</div><div style="font-size:12px;color:#64748b;margin-top:6px">'+fmtP(corr.p)+' · n = '+fN(corr.n)+' · Association ≠ causation</div></div>':'')+
+  '<div style="text-align:center;font-size:13px;color:#64748b;font-style:italic">Olist Marketplace Intelligence Dashboard</div></div>';
+  o.style.display='flex';
+}
+
+// ── EXPORT REPORT ────────────────────────────────────────────────
+function exportReport() {
+  var kpis=getKPIs(), states=getStates().slice(0,5), cats=getCats().slice(0,5), corr=getDelivCorr();
+  var lines=['OLIST MARKETPLACE INTELLIGENCE — ANALYTICAL REPORT','Generated: '+new Date().toLocaleString(),'Mode: '+(DB.isDemo?'DEMO DATA':'Real Workbook'),'','Active Filters: State='+(FILTERS.state||'All')+' | Category='+(FILTERS.category||'All')+' | Payment='+(FILTERS.payment||'All'),'','EXECUTIVE KPIs','Total Orders: '+fN(kpis.totalOrders),'Analyzed: '+fN(kpis.analyzedOrders),'Late Orders: '+fN(kpis.lateOrders),'Late Rate: '+fP(kpis.lateRate),'Product Value: '+fBRL(kpis.productValue),'Avg Review: '+(kpis.avgReview||'N/A'),'','DELIVERY-REVIEW CORRELATION',corr.r!=null?'Pearson r = '+corr.r+' | '+fmtP(corr.p)+' | n = '+fN(corr.n)+'\nNote: Association ≠ causation':'N/A','','TOP 5 HIGH-RISK STATES'].concat(states.map(function(s,i){ return (i+1)+'. '+s.state+': '+fP(s.late_rate)+' late ('+fN(s.late_orders)+' late orders)'; })).concat(['','TOP 5 HIGH-RISK CATEGORIES']).concat(cats.map(function(c,i){ return (i+1)+'. '+c.category+': '+fP(c.late_rate)+' late ('+fN(c.orders)+' orders)'; })).concat(['','---','Generated by OLIST Intelligence Dashboard']);
+  var b=new Blob([lines.join('\n')],{type:'text/plain'}); var url=URL.createObjectURL(b); var a=document.createElement('a'); a.href=url; a.download='olist-report-'+Date.now()+'.txt'; a.click(); URL.revokeObjectURL(url); toast('Report exported','success');
+}
+
+// ── ROUTER ────────────────────────────────────────────────────────
+var PAGE_TITLES={cmd:'Command Center',customer:'Customer Experience',delivery:'Delivery Intelligence',geography:'Geographic Intelligence',category:'Category Intelligence',seller:'Seller Intelligence',payment:'Payment Intelligence',risk:'Risk Intelligence',explorer:'Data Explorer',upload:'Upload & Analyze',action:'Action Center'};
+
+function navigate(page) {
+  CUR_PAGE=page;
+  var pg=document.getElementById('page'); if(!pg) return;
+  document.querySelectorAll('.ni[data-page]').forEach(function(n){ n.classList.toggle('on',n.dataset.page===page); });
+  var tit=document.getElementById('tb-tit'); if(tit) tit.textContent=PAGE_TITLES[page]||page;
+  Object.keys(R).forEach(kc);
+  pg.innerHTML='<div style="padding:0"><div class="sk" style="height:80px;border-radius:12px;margin-bottom:14px"></div><div class="sk" style="height:280px;border-radius:12px;margin-bottom:14px"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div class="sk" style="height:220px;border-radius:12px"></div><div class="sk" style="height:220px;border-radius:12px"></div></div></div>';
+  setTimeout(function(){
+    pg.innerHTML='';
+    try {
+      if (page==='cmd') renderCmd(pg);
+      else if (page==='customer') renderCustomer(pg);
+      else if (page==='delivery') renderDelivery(pg);
+      else if (page==='geography') renderGeography(pg);
+      else if (page==='category') renderCategory(pg);
+      else if (page==='seller') renderSeller(pg);
+      else if (page==='payment') renderPayment(pg);
+      else if (page==='risk') renderRisk(pg);
+      else if (page==='explorer') renderExplorer(pg);
+      else if (page==='upload') renderUpload(pg);
+      else if (page==='action') renderAction(pg);
+      else renderCmd(pg);
+    } catch(err) {
+      console.error('[PAGE] Render error:',err);
+      pg.innerHTML='<div class="nd"><div class="nd-t">Render Error</div><div>'+xe(err.message)+'</div></div>';
+    }
+    pg.scrollTop=0;
+    var sb=document.getElementById('sb');
+    if (sb&&sb.classList.contains('open')){ sb.classList.remove('open'); var ov=document.getElementById('sb-ov'); if(ov) ov.classList.remove('on'); }
+  }, 60);
+}
+
+// ── BOOT ──────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async function(){
+  // Library check
+  if (typeof XLSX==='undefined'||typeof Chart==='undefined') {
+    var pg=document.getElementById('page');
+    if (pg) pg.innerHTML='<div class="nd"><div class="nd-t">CDN Libraries Not Loaded</div><div>Check your internet connection. SheetJS and Chart.js are required.</div></div>';
+    var ls=document.getElementById('ls'); if(ls) ls.style.display='none';
+    return;
+  }
+
+  // Wire up navigation
+  document.querySelectorAll('.ni[data-page]').forEach(function(ni){
+    ni.addEventListener('click', function(){ navigate(ni.dataset.page); });
+  });
+
+  // Sidebar toggle
+  var hbg=document.getElementById('hbg'), sb=document.getElementById('sb'), sbc=document.getElementById('sb-close'), sbov=document.getElementById('sb-ov');
+  function openSb(){ if(sb)sb.classList.add('open'); if(sbov)sbov.classList.add('on'); }
+  function closeSb(){ if(sb)sb.classList.remove('open'); if(sbov)sbov.classList.remove('on'); }
+  if(hbg) hbg.addEventListener('click',openSb);
+  if(sbc) sbc.addEventListener('click',closeSb);
+  if(sbov) sbov.addEventListener('click',closeSb);
+
+  // Buttons
+  var freset=document.getElementById('f-reset'); if(freset) freset.addEventListener('click',clearFilters);
+  var expbtn=document.getElementById('exp-btn'); if(expbtn) expbtn.addEventListener('click',exportReport);
+  var presbtn=document.getElementById('pres-btn'); if(presbtn) presbtn.addEventListener('click',showPres);
+  var psebtn=document.getElementById('pse'); if(psebtn) psebtn.addEventListener('click',function(){ var o=document.getElementById('pso'); if(o) o.style.display='none'; });
+  var fscbtn=document.getElementById('fs-close'); if(fscbtn) fscbtn.addEventListener('click',function(){ var o=document.getElementById('fso'); if(o) o.style.display='none'; kc('fs-canvas'); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeSb(); var fso=document.getElementById('fso'); if(fso)fso.style.display='none'; var pso=document.getElementById('pso'); if(pso)pso.style.display='none'; } });
+
+  var sdot=document.getElementById('sdot'), sstat=document.getElementById('sstat');
+  function setStatus(cls, txt){ if(sdot)sdot.className='sdot '+cls; if(sstat)sstat.textContent=txt; }
+  var lsSub=document.getElementById('ls-sub');
+
+  // Step 1: load demo data immediately so the app is always usable
+  setStatus('loading','Initializing…');
+  if (lsSub) lsSub.textContent='Loading demo data…';
+  loadDemoData();
+
+  // Step 2: try to load real workbook (silent, non-blocking, 3s timeout)
+  if (lsSub) lsSub.textContent='Looking for workbook…';
+  var wbLoaded=false;
+  try {
+    var wbPromise=loadWB();
+    var timeoutPromise=new Promise(function(resolve){ setTimeout(function(){ resolve(false); }, 3000); });
+    wbLoaded=await Promise.race([wbPromise,timeoutPromise]);
+  } catch(e) { wbLoaded=false; }
+
+  if (wbLoaded) {
+    setStatus('ready', Object.keys(DB.sheets).length+' sheets loaded');
+    toast('Workbook loaded — '+Object.keys(DB.sheets).length+' sheets','success');
+  } else {
+    setStatus('demo','Demo data active');
+    // Show a subtle first-time hint to upload real data
+    setTimeout(function(){
+      toast('Running on demo data. Go to Upload & Analyze to load your real Olist workbook.','info',6000);
+    }, 1200);
+  }
+
+  // Hide loading screen and render
+  var ls=document.getElementById('ls'); if(ls) ls.style.display='none';
+  popFilters();
+  navigate('cmd');
+});
+</script>
+</body>
+</html>
